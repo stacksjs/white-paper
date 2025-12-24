@@ -1,0 +1,27 @@
+{
+  "name": "stacks-white-paper",
+  "version": "0.1.0",
+  "description": "Stacks.js White Paper - A comprehensive, batteries-included full-stack framework for TypeScript & Bun",
+  "type": "module",
+  "scripts": {
+    "dev": "bunpress dev",
+    "build": "bunpress build",
+    "preview": "bunpress preview",
+    "clean": "bunpress clean"
+  },
+  "devDependencies": {
+    "@stacksjs/bunpress": "link:../bunpress"
+  },
+  "keywords": [
+    "stacks",
+    "typescript",
+    "bun",
+    "framework",
+    "full-stack",
+    "ai",
+    "documentation",
+    "white-paper"
+  ],
+  "author": "Stacks.js Core Team",
+  "license": "MIT"
+}
