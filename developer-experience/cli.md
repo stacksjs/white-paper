@@ -99,6 +99,79 @@ export default class CreatePostAction extends Action {
 }
 ```
 
+## Extending Projects with Stacks
+
+Stacks projects can be easily extended with pre-built functionality packages called **Stacks**. A Stack is a community or first-party package that adds features to your project by merging its contents directly into your codebase.
+
+### Installing a Stack
+
+```bash
+# Install a Stack by name
+buddy add blog
+
+# Install from a GitHub repository
+buddy add github:stacksjs/blog-stack
+
+# Install from npm
+buddy add @stacksjs/commerce-stack
+```
+
+### How Stacks Work
+
+When you run `buddy add stack-name`, Stacks:
+
+1. **Resolves the package** - Finds the Stack from the registry, GitHub, or npm
+2. **Downloads the contents** - Fetches the Stack's files
+3. **Merges into your project** - Copies the folder structure directly into your project
+
+This means a Stack can include:
+- New models and migrations
+- Pre-built components
+- Actions and middleware
+- Configuration presets
+- Routes and API endpoints
+- Tests and documentation
+
+```bash
+# Example: Adding a blog Stack
+buddy add blog
+
+# Your project now includes:
+# app/Models/Post.ts
+# app/Models/Category.ts
+# app/Actions/CreatePostAction.ts
+# database/migrations/create_posts_table.ts
+# resources/components/BlogList.stx
+# routes/blog.ts
+```
+
+### Creating Your Own Stack
+
+Any Stacks project can be published as a Stack for others to use:
+
+```bash
+# Initialize a new Stack
+buddy make:stack my-feature
+
+# Publish to the registry
+buddy publish:stack
+```
+
+A Stack is simply a Stacks project (or subset) that follows conventions. When someone installs it, the files merge seamlessly into their existing project structure.
+
+### Available Stacks
+
+| Stack | Description |
+|-------|-------------|
+| `blog` | Full blogging system with posts, categories, and comments |
+| `commerce` | E-commerce with products, carts, and checkout |
+| `auth-social` | Social authentication providers (GitHub, Google, etc.) |
+| `admin` | Admin dashboard scaffolding |
+| `api-docs` | OpenAPI documentation generation |
+| `analytics` | Usage analytics and tracking |
+
+*More Stacks are available in the registry and community repositories.*
+
 ## Development Workflow
 
 A typical development session:

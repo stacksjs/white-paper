@@ -218,6 +218,43 @@ Stacks' publishing tools support developers creating and distributing:
 - Utility function libraries
 - CLI applications
 
+### 2.4 Extending Projects with Stacks
+
+Stacks projects can be extended with pre-built functionality packages called **Stacks**. A Stack is a community or first-party package that adds features to your project by merging its contents directly into your codebase.
+
+```bash
+# Install a Stack by name
+buddy add blog
+
+# Install from a GitHub repository
+buddy add github:stacksjs/commerce-stack
+
+# Install from npm
+buddy add @stacksjs/admin-stack
+```
+
+When you run `buddy add stack-name`, the CLI:
+
+1. **Resolves the package** - Finds the Stack from the registry, GitHub, or npm
+2. **Downloads the contents** - Fetches the Stack's files
+3. **Merges into your project** - Copies the folder structure directly into your project
+
+This means a Stack can include models, migrations, components, actions, routes, and more—all instantly integrated into your project following Stacks conventions.
+
+```bash
+# Example: Adding a blog Stack adds these files to your project:
+buddy add blog
+
+# app/Models/Post.ts
+# app/Models/Category.ts
+# app/Actions/CreatePostAction.ts
+# database/migrations/create_posts_table.ts
+# resources/components/BlogList.stx
+# routes/blog.ts
+```
+
+Any Stacks project can be published as a Stack for others to use, creating a rich ecosystem of shareable, composable functionality.
+
 ---
 
 # Part II: Architecture
