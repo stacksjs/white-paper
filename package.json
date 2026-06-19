@@ -10,7 +10,7 @@
     "clean": "bunpress clean"
   },
   "devDependencies": {
-    "@stacksjs/bunpress": "link:../bunpress"
+    "@stacksjs/bunpress": "^0.1.9"
   },
   "keywords": [
     "stacks",

@@ -1,6 +1,460 @@
 {
   "version": "1.0",
   "packages": {
-
+    "which@2.0.2": {
+      "name": "which",
+      "version": "2.0.2",
+      "resolved": "registry:which@2.0.2"
+    },
+    "strip-ansi@7.2.0": {
+      "name": "strip-ansi",
+      "version": "7.2.0",
+      "resolved": "registry:strip-ansi@7.2.0"
+    },
+    "minimatch@5.1.9": {
+      "name": "minimatch",
+      "version": "5.1.9",
+      "resolved": "registry:minimatch@5.1.9"
+    },
+    "events@3.3.0": {
+      "name": "events",
+      "version": "3.3.0",
+      "resolved": "registry:events@3.3.0"
+    },
+    "abort-controller@3.0.0": {
+      "name": "abort-controller",
+      "version": "3.0.0",
+      "resolved": "registry:abort-controller@3.0.0"
+    },
+    "process@0.11.10": {
+      "name": "process",
+      "version": "0.11.10",
+      "resolved": "registry:process@0.11.10"
+    },
+    "ts-syntax-highlighter@0.2.1": {
+      "name": "ts-syntax-highlighter",
+      "version": "0.2.1",
+      "resolved": "registry:ts-syntax-highlighter@0.2.1"
+    },
+    "ts-images@0.1.8": {
+      "name": "ts-images",
+      "version": "0.1.8",
+      "resolved": "registry:ts-images@0.1.8"
+    },
+    "ts-jpeg@0.3.1": {
+      "name": "ts-jpeg",
+      "version": "0.3.1",
+      "resolved": "registry:ts-jpeg@0.3.1"
+    },
+    "tar-stream@3.2.0": {
+      "name": "tar-stream",
+      "version": "3.2.0",
+      "resolved": "registry:tar-stream@3.2.0"
+    },
+    "graceful-fs@4.2.11": {
+      "name": "graceful-fs",
+      "version": "4.2.11",
+      "resolved": "registry:graceful-fs@4.2.11"
+    },
+    "lazystream@1.0.1": {
+      "name": "lazystream",
+      "version": "1.0.1",
+      "resolved": "registry:lazystream@1.0.1"
+    },
+    "lodash@4.18.1": {
+      "name": "lodash",
+      "version": "4.18.1",
+      "resolved": "registry:lodash@4.18.1"
+    },
+    "path-scurry@1.11.1": {
+      "name": "path-scurry",
+      "version": "1.11.1",
+      "resolved": "registry:path-scurry@1.11.1"
+    },
+    "event-target-shim@5.0.1": {
+      "name": "event-target-shim",
+      "version": "5.0.1",
+      "resolved": "registry:event-target-shim@5.0.1"
+    },
+    "bare-stream@2.13.3": {
+      "name": "bare-stream",
+      "version": "2.13.3",
+      "resolved": "registry:bare-stream@2.13.3"
+    },
+    "@stacksjs/desktop@0.2.72": {
+      "name": "@stacksjs/desktop",
+      "version": "0.2.72",
+      "resolved": "registry:@stacksjs/desktop@0.2.72"
+    },
+    "bun-plugin-stx@0.2.72": {
+      "name": "bun-plugin-stx",
+      "version": "0.2.72",
+      "resolved": "registry:bun-plugin-stx@0.2.72"
+    },
+    "ansi-regex@6.2.2": {
+      "name": "ansi-regex",
+      "version": "6.2.2",
+      "resolved": "registry:ansi-regex@6.2.2"
+    },
+    "foreground-child@3.3.1": {
+      "name": "foreground-child",
+      "version": "3.3.1",
+      "resolved": "registry:foreground-child@3.3.1"
+    },
+    "ieee754@1.2.1": {
+      "name": "ieee754",
+      "version": "1.2.1",
+      "resolved": "registry:ieee754@1.2.1"
+    },
+    "text-decoder@1.2.7": {
+      "name": "text-decoder",
+      "version": "1.2.7",
+      "resolved": "registry:text-decoder@1.2.7"
+    },
+    "@stacksjs/clapp@0.2.10": {
+      "name": "@stacksjs/clapp",
+      "version": "0.2.10",
+      "resolved": "registry:@stacksjs/clapp@0.2.10"
+    },
+    "fast-fifo@1.3.2": {
+      "name": "fast-fifo",
+      "version": "1.3.2",
+      "resolved": "registry:fast-fifo@1.3.2"
+    },
+    "streamx@2.28.0": {
+      "name": "streamx",
+      "version": "2.28.0",
+      "resolved": "registry:streamx@2.28.0"
+    },
+    "shebang-regex@3.0.0": {
+      "name": "shebang-regex",
+      "version": "3.0.0",
+      "resolved": "registry:shebang-regex@3.0.0"
+    },
+    "bare-url@2.4.5": {
+      "name": "bare-url",
+      "version": "2.4.5",
+      "resolved": "registry:bare-url@2.4.5"
+    },
+    "@stacksjs/ts-webp@0.1.0": {
+      "name": "@stacksjs/ts-webp",
+      "version": "0.1.0",
+      "resolved": "registry:@stacksjs/ts-webp@0.1.0"
+    },
+    "bare-events@2.9.1": {
+      "name": "bare-events",
+      "version": "2.9.1",
+      "resolved": "registry:bare-events@2.9.1"
+    },
+    "async@3.2.6": {
+      "name": "async",
+      "version": "3.2.6",
+      "resolved": "registry:async@3.2.6"
+    },
+    "ts-gif@0.1.2": {
+      "name": "ts-gif",
+      "version": "0.1.2",
+      "resolved": "registry:ts-gif@0.1.2"
+    },
+    "glob@10.5.0": {
+      "name": "glob",
+      "version": "10.5.0",
+      "resolved": "registry:glob@10.5.0"
+    },
+    "isexe@2.0.0": {
+      "name": "isexe",
+      "version": "2.0.0",
+      "resolved": "registry:isexe@2.0.0"
+    },
+    "events-universal@1.0.1": {
+      "name": "events-universal",
+      "version": "1.0.1",
+      "resolved": "registry:events-universal@1.0.1"
+    },
+    "brace-expansion@2.1.1": {
+      "name": "brace-expansion",
+      "version": "2.1.1",
+      "resolved": "registry:brace-expansion@2.1.1"
+    },
+    "teex@1.0.1": {
+      "name": "teex",
+      "version": "1.0.1",
+      "resolved": "registry:teex@1.0.1"
+    },
+    "eastasianwidth@0.2.0": {
+      "name": "eastasianwidth",
+      "version": "0.2.0",
+      "resolved": "registry:eastasianwidth@0.2.0"
+    },
+    "@stacksjs/clarity@0.3.28": {
+      "name": "@stacksjs/clarity",
+      "version": "0.3.28",
+      "resolved": "registry:@stacksjs/clarity@0.3.28"
+    },
+    "@stacksjs/bunpress@0.1.9": {
+      "name": "@stacksjs/bunpress",
+      "version": "0.1.9",
+      "resolved": "registry:@stacksjs/bunpress@0.1.9"
+    },
+    "wrap-ansi@8.1.0": {
+      "name": "wrap-ansi",
+      "version": "8.1.0",
+      "resolved": "registry:wrap-ansi@8.1.0"
+    },
+    "compress-commons@6.0.2": {
+      "name": "compress-commons",
+      "version": "6.0.2",
+      "resolved": "registry:compress-commons@6.0.2"
+    },
+    "is-stream@2.0.1": {
+      "name": "is-stream",
+      "version": "2.0.1",
+      "resolved": "registry:is-stream@2.0.1"
+    },
+    "readdir-glob@1.1.3": {
+      "name": "readdir-glob",
+      "version": "1.1.3",
+      "resolved": "registry:readdir-glob@1.1.3"
+    },
+    "safe-buffer@5.2.1": {
+      "name": "safe-buffer",
+      "version": "5.2.1",
+      "resolved": "registry:safe-buffer@5.2.1"
+    },
+    "ts-broadcasting@0.0.4": {
+      "name": "ts-broadcasting",
+      "version": "0.0.4",
+      "resolved": "registry:ts-broadcasting@0.0.4"
+    },
+    "@stacksjs/ts-png@0.1.2": {
+      "name": "@stacksjs/ts-png",
+      "version": "0.1.2",
+      "resolved": "registry:@stacksjs/ts-png@0.1.2"
+    },
+    "balanced-match@1.0.2": {
+      "name": "balanced-match",
+      "version": "1.0.2",
+      "resolved": "registry:balanced-match@1.0.2"
+    },
+    "@stacksjs/ts-cloud@0.2.27": {
+      "name": "@stacksjs/ts-cloud",
+      "version": "0.2.27",
+      "resolved": "registry:@stacksjs/ts-cloud@0.2.27"
+    },
+    "@stacksjs/ts-craft@0.0.2": {
+      "name": "@stacksjs/ts-craft",
+      "version": "0.0.2",
+      "resolved": "registry:@stacksjs/ts-craft@0.0.2"
+    },
+    "@stacksjs/stx@0.2.72": {
+      "name": "@stacksjs/stx",
+      "version": "0.2.72",
+      "resolved": "registry:@stacksjs/stx@0.2.72"
+    },
+    "stx-router@0.2.72": {
+      "name": "stx-router",
+      "version": "0.2.72",
+      "resolved": "registry:stx-router@0.2.72"
+    },
+    "@stacksjs/ts-avif@0.1.0": {
+      "name": "@stacksjs/ts-avif",
+      "version": "0.1.0",
+      "resolved": "registry:@stacksjs/ts-avif@0.1.0"
+    },
+    "bunfig@0.15.14": {
+      "name": "bunfig",
+      "version": "0.15.14",
+      "resolved": "registry:bunfig@0.15.14"
+    },
+    "zip-stream@6.0.1": {
+      "name": "zip-stream",
+      "version": "6.0.1",
+      "resolved": "registry:zip-stream@6.0.1"
+    },
+    "@stacksjs/ts-md@0.1.1": {
+      "name": "@stacksjs/ts-md",
+      "version": "0.1.1",
+      "resolved": "registry:@stacksjs/ts-md@0.1.1"
+    },
+    "bare-fs@4.7.2": {
+      "name": "bare-fs",
+      "version": "4.7.2",
+      "resolved": "registry:bare-fs@4.7.2"
+    },
+    "buffer@6.0.3": {
+      "name": "buffer",
+      "version": "6.0.3",
+      "resolved": "registry:buffer@6.0.3"
+    },
+    "archiver-utils@5.0.2": {
+      "name": "archiver-utils",
+      "version": "5.0.2",
+      "resolved": "registry:archiver-utils@5.0.2"
+    },
+    "base64-js@1.5.1": {
+      "name": "base64-js",
+      "version": "1.5.1",
+      "resolved": "registry:base64-js@1.5.1"
+    },
+    "shebang-command@2.0.0": {
+      "name": "shebang-command",
+      "version": "2.0.0",
+      "resolved": "registry:shebang-command@2.0.0"
+    },
+    "jackspeak@3.4.3": {
+      "name": "jackspeak",
+      "version": "3.4.3",
+      "resolved": "registry:jackspeak@3.4.3"
+    },
+    "package-json-from-dist@1.0.1": {
+      "name": "package-json-from-dist",
+      "version": "1.0.1",
+      "resolved": "registry:package-json-from-dist@1.0.1"
+    },
+    "@stacksjs/sanitizer@0.2.72": {
+      "name": "@stacksjs/sanitizer",
+      "version": "0.2.72",
+      "resolved": "registry:@stacksjs/sanitizer@0.2.72"
+    },
+    "@stacksjs/ts-css@0.1.0": {
+      "name": "@stacksjs/ts-css",
+      "version": "0.1.0",
+      "resolved": "registry:@stacksjs/ts-css@0.1.0"
+    },
+    "b4a@1.8.1": {
+      "name": "b4a",
+      "version": "1.8.1",
+      "resolved": "registry:b4a@1.8.1"
+    },
+    "data-uri-to-buffer@6.0.2": {
+      "name": "data-uri-to-buffer",
+      "version": "6.0.2",
+      "resolved": "registry:data-uri-to-buffer@6.0.2"
+    },
+    "lru-cache@10.4.3": {
+      "name": "lru-cache",
+      "version": "10.4.3",
+      "resolved": "registry:lru-cache@10.4.3"
+    },
+    "cross-spawn@7.0.6": {
+      "name": "cross-spawn",
+      "version": "7.0.6",
+      "resolved": "registry:cross-spawn@7.0.6"
+    },
+    "signal-exit@4.1.0": {
+      "name": "signal-exit",
+      "version": "4.1.0",
+      "resolved": "registry:signal-exit@4.1.0"
+    },
+    "archiver@7.0.1": {
+      "name": "archiver",
+      "version": "7.0.1",
+      "resolved": "registry:archiver@7.0.1"
+    },
+    "crc32-stream@6.0.0": {
+      "name": "crc32-stream",
+      "version": "6.0.0",
+      "resolved": "registry:crc32-stream@6.0.0"
+    },
+    "ansi-styles@6.2.3": {
+      "name": "ansi-styles",
+      "version": "6.2.3",
+      "resolved": "registry:ansi-styles@6.2.3"
+    },
+    "emoji-regex@9.2.2": {
+      "name": "emoji-regex",
+      "version": "9.2.2",
+      "resolved": "registry:emoji-regex@9.2.2"
+    },
+    "@ts-cloud/aws-types@0.2.27": {
+      "name": "@ts-cloud/aws-types",
+      "version": "0.2.27",
+      "resolved": "registry:@ts-cloud/aws-types@0.2.27"
+    },
+    "@stacksjs/ts-svg@0.1.1": {
+      "name": "@stacksjs/ts-svg",
+      "version": "0.1.1",
+      "resolved": "registry:@stacksjs/ts-svg@0.1.1"
+    },
+    "bare-path@3.0.1": {
+      "name": "bare-path",
+      "version": "3.0.1",
+      "resolved": "registry:bare-path@3.0.1"
+    },
+    "path-key@3.1.1": {
+      "name": "path-key",
+      "version": "3.1.1",
+      "resolved": "registry:path-key@3.1.1"
+    },
+    "@stacksjs/ts-i18n@0.1.11": {
+      "name": "@stacksjs/ts-i18n",
+      "version": "0.1.11",
+      "resolved": "registry:@stacksjs/ts-i18n@0.1.11"
+    },
+    "bare-os@3.9.1": {
+      "name": "bare-os",
+      "version": "3.9.1",
+      "resolved": "registry:bare-os@3.9.1"
+    },
+    "string_decoder@1.3.0": {
+      "name": "string_decoder",
+      "version": "1.3.0",
+      "resolved": "registry:string_decoder@1.3.0"
+    },
+    "readable-stream@4.7.0": {
+      "name": "readable-stream",
+      "version": "4.7.0",
+      "resolved": "registry:readable-stream@4.7.0"
+    },
+    "crc-32@1.2.2": {
+      "name": "crc-32",
+      "version": "1.2.2",
+      "resolved": "registry:crc-32@1.2.2"
+    },
+    "string-width@5.1.2": {
+      "name": "string-width",
+      "version": "5.1.2",
+      "resolved": "registry:string-width@5.1.2"
+    },
+    "@stacksjs/ts-xml@0.1.0": {
+      "name": "@stacksjs/ts-xml",
+      "version": "0.1.0",
+      "resolved": "registry:@stacksjs/ts-xml@0.1.0"
+    },
+    "minipass@7.1.3": {
+      "name": "minipass",
+      "version": "7.1.3",
+      "resolved": "registry:minipass@7.1.3"
+    },
+    "@stacksjs/ts-bmp@0.1.0": {
+      "name": "@stacksjs/ts-bmp",
+      "version": "0.1.0",
+      "resolved": "registry:@stacksjs/ts-bmp@0.1.0"
+    },
+    "normalize-path@3.0.0": {
+      "name": "normalize-path",
+      "version": "3.0.0",
+      "resolved": "registry:normalize-path@3.0.0"
+    },
+    "@cwcss/crosswind@0.2.6": {
+      "name": "@cwcss/crosswind",
+      "version": "0.2.6",
+      "resolved": "registry:@cwcss/crosswind@0.2.6"
+    },
+    "buffer-crc32@1.0.0": {
+      "name": "buffer-crc32",
+      "version": "1.0.0",
+      "resolved": "registry:buffer-crc32@1.0.0"
+    },
+    "@isaacs/cliui@8.0.2": {
+      "name": "@isaacs/cliui",
+      "version": "8.0.2",
+      "resolved": "registry:@isaacs/cliui@8.0.2"
+    },
+    "@ts-cloud/core@0.2.27": {
+      "name": "@ts-cloud/core",
+      "version": "0.2.27",
+      "resolved": "registry:@ts-cloud/core@0.2.27"
+    }
   }
 }
