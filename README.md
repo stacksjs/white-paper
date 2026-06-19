@@ -225,6 +225,25 @@ The protocol prescribes a **Model–View–Action** separation. MVA refines the 
 
 The protocol requires that business logic live in Actions (not in routes, models, or views), that validation and authorization be expressible declaratively on an Action, and that an Action be invokable independently of the transport that triggered it.
 
+### 3.1 One Core, Many Delivery Targets
+
+Because business logic lives in transport-independent Actions (data in Models, presentation in Views), a single application core can serve many **delivery targets** without duplicating logic. The protocol treats the delivery target as a thin edge around the same core:
+
+```
+                    ┌────────────────────────────┐
+                    │    Models  +  Actions       │   write once
+                    │   (+ Views for UI targets)  │
+                    └──────────────┬─────────────┘
+        ┌───────────────┬──────────┼──────────┬───────────────┐
+        ▼               ▼          ▼          ▼               ▼
+   ┌─────────┐    ┌─────────┐ ┌─────────┐ ┌─────────┐   ┌─────────┐
+   │   Web   │    │   API   │ │ Desktop │ │ Mobile  │   │   CLI   │
+   │ (views) │    │ (JSON)  │ │(native) │ │(native) │   │(commands)│
+   └─────────┘    └─────────┘ └─────────┘ └─────────┘   └─────────┘
+```
+
+A conformant implementation MUST be able to expose the same Action through at least the **web** and **API** targets; **desktop**, **mobile**, and **CLI** targets are RECOMMENDED where the host platform supports them. The defining requirement: adding a target does not require rewriting business logic—only adapting how input arrives and how output is rendered.
+
 ---
 
 ## 4. Convention Specification
@@ -294,6 +313,10 @@ The protocol organizes functionality into **capability domains**. Each domain ha
 | **Real-Time** | Bidirectional channels with authorization and presence (§7.2) |
 | **Notifications** | One message, many delivery channels (§7.3) |
 | **AI Integration** | Provider-agnostic completion/chat/streaming interface (§7.4) |
+| **API** | Resourceful routing, response shaping, pagination, machine-readable description (§6.9) |
+| **Delivery Targets** | One core exposed as web, API, desktop, mobile, CLI (§3.1) |
+| **Observability** | Structured logging, health checks, request tracing (§7.6) |
+| **Analytics** | Cookieless, no-PII product analytics with ingest + reporting interfaces (§7.7) |
 | **Infrastructure** | Declarative, driver-based deployment targets (§7.5) |
 | **Utilities** | Strings, arrays, objects, collections, dates (implementation-provided) |
 
@@ -456,6 +479,26 @@ Configuration MUST be:
 - **Environment-aware** — values resolvable from the environment, with defaults.
 - **Override-only** — present to override defaults, never required for basic operation (§4.4).
 
+### 6.9 API Contract
+
+When an Action is exposed as a JSON API rather than a rendered view (§3.1), the protocol adds requirements for predictable, machine-consumable responses:
+
+- **Resourceful routing** — a resource maps to the conventional CRUD set (`index`, `show`, `store`, `update`, `destroy`), with the ability to include or exclude members.
+- **Response shaping** — responses are produced by an explicit transformer (a "resource"/serializer), never by leaking raw model rows; the transformer controls which fields appear and how related data is embedded.
+- **Pagination conventions** — list endpoints MUST support pagination and return consistent metadata (current page and size, plus total or next/previous cursors). Implementations SHOULD offer both offset and cursor strategies.
+- **Stable error format** — validation and runtime errors MUST serialize to a consistent, documented shape, keyed by field where applicable (§6.3).
+- **API authentication** — at least one token mechanism (e.g., bearer tokens), gated by the authentication contract (§6.5) and independent of any browser session.
+- **Machine-readable description** — an implementation SHOULD emit a machine-readable API description (e.g., an OpenAPI document) derived from its routes and validation schemas, so clients and tooling can be generated from the contract.
+
+These requirements make an API surface portable: a client written against one implementation's description works against any other implementation exposing the same resources.
+
+```
+resource(path, action, { only | except })   // CRUD expansion
+transform(model) -> shaped JSON              // explicit serializer
+paginate(query, perPage | cursor) -> { data, meta }
+describe() -> OpenAPI document               // generated from routes + schemas
+```
+
 ---
 
 ## 7. Cross-Cutting Capability Contracts
@@ -499,6 +542,27 @@ The protocol specifies infrastructure as a **declarative, driver-based** capabil
 - Cloud providers are **drivers**; the same configuration SHOULD port across providers as drivers become available.
 - Implementations SHOULD ship **presets** for common deployment topologies (static site, server, serverless, full-stack, API backend).
 
+### 7.6 Observability
+
+The protocol specifies that applications be observable by default:
+- **Structured logging** — log records carry structured context; human-readable in development, machine-parseable in production.
+- **Health checks** — a standard endpoint reports liveness/readiness and the status of critical dependencies (database, cache, queue).
+- **Request tracing** — every request carries a correlation identifier propagated across middleware, actions, jobs, and notifications, so a unit of work can be followed end to end.
+
+Logging and tracing backends are **drivers** (§6.6).
+
+### 7.7 Privacy-First Analytics
+
+The protocol treats product analytics as a core, privacy-preserving capability—measurement MUST be possible without surveilling users:
+
+- **Cookieless by default** — visitor identity is derived without persistent client storage. Implementations SHOULD count unique visitors via a rotating, secret-salted hash of coarse request attributes that cannot be reversed or correlated across days.
+- **No personal data** — no PII is stored; IP addresses MUST be anonymizable (never stored raw by default), and geolocation, if collected at all, is opt-in and coarse (country-level).
+- **Respect user signals** — Do Not Track and explicit opt-out MUST be honored.
+- **Two interfaces** — an **ingest** interface (record a pageview or custom event) and a **reporting** interface (aggregations over time, with breakdowns and filters), so one event stream serves both collection and querying.
+- **Retention & aggregation** — raw events have bounded retention; pre-aggregated rollups serve fast, cheap reporting over long ranges.
+
+Because no consent-gating identifiers are used, conformant analytics SHOULD be operable without a cookie-consent banner. Storage and geolocation lookups are **drivers** (§6.6).
+
 ---
 
 # Part II: Stacks.js — The Reference Implementation
@@ -511,12 +575,14 @@ Stacks.js is a **Complete** conformant implementation (§2.2). It is a rapid ful
 
 - **Frontend**: STX components, Web Components, a templating engine, the Crosswind CSS framework
 - **Backend**: HTTP routing, middleware, validation, the Actions pattern
+- **APIs**: resourceful REST routing, API Resources/transformers, three pagination strategies, token auth, automatic OpenAPI 3.0 generation
 - **Database**: multi-dialect ORM, query builder, migrations, seeders
-- **Infrastructure**: ts-cloud integration (zero-dependency IaC), serverless support, deployment automation
+- **Infrastructure**: ts-cloud — zero-dependency IaC that manages both long-lived server fleets and serverless deployments
 - **Services**: authentication, payments, email, SMS, notifications, queues
+- **Observability**: structured logging (Clarity), health checks, request tracing
 - **AI**: multi-provider AI integration, the Buddy assistant, code generation
 - **CLI**: the `buddy` command-line toolkit
-- **Desktop**: Craft-based desktop and mobile application support
+- **Delivery targets**: web, JSON APIs, desktop (Craft, production), mobile (Craft, roadmap), and CLI — from one application core (§3.1)
 
 Layered, each tier mapping to protocol contracts from Part I:
 
@@ -774,6 +840,66 @@ type CreateUser = Infer<typeof CreateUserSchema>   // §6.7 type contract
 | **Date/Time** | `date()`, `datetime()`, `time()`, `timestamp()`, `unix()` |
 | **Specialized** | `password()`, `email()`, `url()`, `uuid()`, `ip()`, `creditCard()`, `iban()` |
 
+### 10.5 Building APIs — satisfies §6.9
+
+Stacks.js treats API construction as a first-class delivery target (§3.1): the same Actions that back web routes serve JSON APIs.
+
+**Resourceful routing** expands to the full CRUD set, with `only`/`except`:
+
+```typescript
+router.apiResource('/posts', 'Actions/PostActions')   // index, show, store, update, destroy
+router.resource('/tags', 'Actions/TagActions', { only: ['index', 'show'] })
+router.resource('/comments', 'Actions/CommentActions', { except: ['destroy'] })
+```
+
+**API Resources** shape responses explicitly (Laravel-style transformers), so endpoints never leak raw rows:
+
+```typescript
+// app/Resources/UserResource.ts
+export default class UserResource extends JsonResource<User> {
+  toArray() {
+    return {
+      id: this.resource.id,
+      name: this.resource.name,
+      email: this.resource.email,
+      posts: PostResource.collection(this.whenLoaded('posts')),
+      created_at: this.resource.created_at,
+    }
+  }
+}
+
+return new UserResource(user).toResponse()
+return UserResource.collection(users).toResponse()
+```
+
+`whenLoaded`, `when`, `whenNotNull`, and `whenCounted` conditionally include fields and relations.
+
+**Pagination** ships in three strategies, all serializing to a consistent `{ data, meta, links }` shape:
+
+| Strategy | Returns | Best for |
+|----------|---------|----------|
+| `paginate()` | data + total + page metadata | UIs needing page numbers / total counts |
+| `simplePaginate()` | data + next/prev only | large tables where counting is expensive |
+| `cursorPaginate()` | data + opaque cursors | deep, constant-cost pagination over big sets |
+
+**API authentication** uses SHA-256-hashed personal access tokens (with scopes and refresh tokens), checked by middleware; the `fetcher` HTTP client supports Bearer, Basic, and Digest auth:
+
+```typescript
+const res = await fetcher
+  .withToken(apiToken)
+  .withQueryParams({ page: 2 })
+  .get<PaginatedData<User>>('/api/users')
+```
+
+**Action-level rate limiting** buckets by user, token, IP, or a custom identity, across multiple windows, emitting `Retry-After` on 429:
+
+```typescript
+await rateLimit('create-post', 10).per('hour')
+await rateLimit('login', 5, { identity: email }).per('minute')
+```
+
+**OpenAPI 3.0 generation** is automatic: Stacks.js derives an OpenAPI document from the live route registry and each Action's validation schema, persists it to `storage/framework/api/openapi.json`, and serves a live copy at `GET /__openapi.json` in development—so the spec never drifts from the routes. This satisfies the protocol's machine-readable-description requirement (§6.9) and lets external clients and SDKs be generated from the contract.
+
 ## 11. Database & ORM (Reference Implementation) — satisfies §6.4
 
 ### 11.1 Multi-Dialect Support
@@ -879,6 +1005,17 @@ if (verification.verified) { /* store verification.registrationInfo.credential *
 
 TOTP second factor, browser-capability detection (`browserSupportsWebAuthn`, `platformAuthenticatorIsAvailable`), and conventional security features—CSRF protection, rate limiting, security headers (HSTS/CSP), and encryption/hashing helpers—are all provided. Session, JWT, and OAuth mechanisms are on the roadmap as additional credential drivers behind the same contract.
 
+### 12.5 Observability — satisfies §7.6
+
+Stacks.js implements structured logging with **Clarity** (pretty output in development, JSON in production), health checks via the `health` module, and request tracing with correlation IDs carried from `bun-router` through actions, jobs, and notifications:
+
+```typescript
+import { log } from '@stacksjs/clarity'
+log.info('User logged in', { userId: 123, ip: req.ip, traceId: req.traceId })
+```
+
+`bun-router` additionally provides performance monitoring (CPU, memory, response-time tracking with alerts) and distributed request tracing out of the box.
+
 ## 13. AI Integration (Reference Implementation) — satisfies §7.4
 
 ```typescript
@@ -912,35 +1049,78 @@ buddy make:action "Create an action that processes refund requests" --ai
 
 ## 14. Cloud & Infrastructure (Reference Implementation) — satisfies §7.5
 
-Stacks.js implements infrastructure-as-code with **`ts-cloud`**, a zero-dependency IaC framework. Unlike AWS CDK, it requires no AWS SDK and no AWS CLI—just TypeScript and Bun—issuing direct HTTPS calls to AWS APIs with custom Signature V4 auth. It currently ships full **AWS** support (47 services) via the AWS driver, with additional provider drivers planned.
+Stacks.js implements the infrastructure contract with **`ts-cloud`**, a zero-dependency IaC framework that manages **both long-lived server fleets and serverless deployments** from one typed configuration. In other ecosystems these are two paid products—**Laravel Forge** (server provisioning/management) and **Laravel Vapor** (serverless). In Stacks they are one open, built-in capability.
+
+Unlike AWS CDK, ts-cloud requires **no AWS SDK and no AWS CLI**—just TypeScript and Bun. It issues direct HTTPS calls to cloud APIs with a hand-written **Signature V4** signer (`packages/ts-cloud/src/aws/client.ts`), resolving credentials from environment variables, `~/.aws/credentials`, or an EC2 IAM role. The reference version is `@stacksjs/ts-cloud` 0.5.17 (MIT).
 
 | Aspect | ts-cloud | AWS CDK |
 |--------|----------|---------|
 | **Dependencies** | Zero (no AWS SDK) | Full AWS SDK (~100MB+) |
 | **Startup Time** | Milliseconds | Seconds (SDK init) |
-| **Bundle Size** | Minimal (~5MB) | Much larger |
-| **Learning Curve** | Configuration-based | Imperative programming |
-| **Presets** | 13 production-ready templates | None built-in |
+| **Manages** | Server fleets **and** serverless | Resources (BYO server tooling) |
+| **Model** | Declarative config + presets | Imperative programming |
+| **Presets** | 21 production-ready templates | None built-in |
 
-```typescript
-// cloud.config.ts
-export default {
-  driver: 'aws', // current: 'aws' | planned: 'gcp', 'azure', 'cloudflare', 'digitalocean', 'hetzner'
-  project: { name: 'my-app', slug: 'my-app', region: 'us-east-1' },
-  mode: 'serverless',
-  infrastructure: {
-    vpc: { cidr: '10.0.0.0/16', zones: 2, natGateway: true },
-    compute: { mode: 'serverless', server: { instanceType: 't3.small', autoScaling: { min: 1, max: 5 } } },
-    databases: { main: { engine: 'postgres', instanceClass: 'db.t3.micro', storage: 20 } },
-    cache: { type: 'redis', nodeType: 'cache.t3.micro' },
-    security: { waf: { enabled: true, rateLimit: 2000 }, kms: true },
-  },
-} satisfies CloudConfig
+```
+                       cloud.config.ts  (one typed config)
+                                  │
+                ┌─────────────────┴──────────────────┐
+                ▼                                    ▼
+    ┌────────────────────────┐          ┌───────────────────────────┐
+    │  SERVER MODE  (Forge)   │          │  SERVERLESS MODE  (Vapor)  │
+    │  EC2 fleet · Auto Scaling│         │  one artifact → 3 Lambdas: │
+    │  ALB/NLB · health checks │         │   • HTTP  (API Gateway v2) │
+    │  SSM shell · rolling     │         │   • Queue (SQS worker)     │
+    │  deploys · RDS · Redis   │         │   • CLI   (EventBridge)    │
+    └────────────────────────┘          │  RDS Proxy · EFS · warmer  │
+                │                         └───────────────────────────┘
+                └──────────────┬───────────────────┘
+                               ▼
+                  Driver:  AWS  ·  Hetzner  (production)
+                           GCP · Azure · Cloudflare · DO  (planned)
 ```
 
-The driver-based design (§6.6) means the same configuration is intended to port across providers as drivers are released. ts-cloud ships 13 presets (static sites, Node servers, serverless, full-stack, API backends, JAMstack, microservices, real-time, data pipelines, ML APIs, and more). Deployment targets include serverless (Lambda), container (ECS/Fargate), traditional (EC2), and edge (Cloudflare Workers).
+### 14.1 Server Fleets (the Forge side)
 
-## 15. Real-Time, Queues & Notifications (Reference Implementation)
+In **server mode**, ts-cloud provisions and manages long-lived infrastructure: it discovers the VPC and subnets, reconciles security groups, resolves the latest Ubuntu AMI via SSM Parameter Store, attaches an IAM instance profile, and stands up an **EC2 Auto Scaling Group** (configurable min/max, target-CPU tracking, scale cooldowns) behind an **Application/Network Load Balancer** with health checks and optional sticky sessions. Shell access uses **SSM Session Manager** (no SSH keys to manage on AWS); application releases are deployed to instances over SSM, with `deploy:rollback` to revert. Managed **RDS** (PostgreSQL/MySQL/Aurora, Multi-AZ, encrypted, automated backups) and **ElastiCache** Redis complete the fleet.
+
+### 14.2 Serverless (the Vapor side)
+
+In **serverless mode**, ts-cloud packages a single build artifact into **three coordinated Lambda functions**—an HTTP handler (API Gateway HTTP API v2), an SQS queue worker, and a CLI/scheduler function (EventBridge)—rather than one function per route. It supports Node 18/20/22 plus Bun and PHP on custom `provided.al2023` layers; cold starts are mitigated by an EventBridge **warmer** and optional **provisioned concurrency**; a persistent **Octane-style** mode is available. Functions attach to the VPC to reach private resources, with **RDS Proxy** connection pooling and **EFS** shared storage, and read secrets from Secrets Manager / SSM. Packaging is zip (250 MB) or container image via ECR (10 GB).
+
+```typescript
+// cloud.config.ts — serverless preset
+import { createFullStackAppPreset } from '@stacksjs/ts-cloud/presets'
+
+export default createFullStackAppPreset({
+  name: 'My App',
+  slug: 'my-app',
+  domain: 'example.com',
+  apiSubdomain: 'api',
+})
+// → S3 + CloudFront frontend, Fargate/Lambda backend, RDS, Redis,
+//   Route53 records, and auto-issued ACM certificates
+```
+
+### 14.3 Drivers, Services, Presets & Safety
+
+- **Drivers (§6.6)** — **AWS** and **Hetzner** are production drivers today (auto-detected from config); GCP, Azure, Cloudflare, and DigitalOcean are planned. The same configuration is intended to port across providers as drivers land.
+- **Coverage** — the AWS driver implements **54 service clients** (EC2, ECS, Lambda, S3, RDS, DynamoDB, ElastiCache, CloudFront, Route53, ACM, SQS, SNS, EventBridge, SES, WAF, OpenSearch, and AI services such as Bedrock, Rekognition, Textract, Transcribe, Polly, and Translate).
+- **Presets** — **21 production-ready** blueprints (static site, Node server, Node serverless, full-stack, API backend, WordPress, JAMstack, microservices, real-time, data pipeline, ML API, traditional web app, Laravel, serverless Laravel, and more), composable via `extendPreset()` / `composePresets()`.
+- **Plan & state** — `cloud deploy --dry-run` runs `analyzeStackDiff()` to preview added/removed/updated/**replaced** resources and flag dangerous changes. CloudFormation is the source of truth (no local state file); re-running `deploy` is idempotent.
+- **Safety** — a **pre-deploy security scan** (35+ secret patterns) blocks accidental credential leaks before anything ships. DNS is multi-provider (Route53, Cloudflare, Porkbun, GoDaddy) with automatic ACM issuance via DNS validation; object storage can be migrated across S3, Backblaze B2, and Hetzner.
+
+```bash
+cloud deploy --dry-run        # preview the diff
+cloud deploy                  # provision / update
+cloud serverless:rollback     # roll serverless app back a release
+cloud logs:tail <function>    # stream logs
+cloud secrets:set DB_URL ...  # Secrets Manager / SSM
+```
+
+> **Maturity note.** Infrastructure provisioning (CloudFormation generation, Signature V4, serverless deploys, static sites, RDS/ElastiCache) is production-ready for Node/Bun. The high-level `server:*` management CLI (à la Forge's dashboard verbs) and PHP/Laravel serverless are still maturing.
+
+## 15. Real-Time, Queues, Notifications & Analytics (Reference Implementation)
 
 **Real-time** (§7.2) via `realtime`/`ts-broadcasting`:
 
@@ -979,6 +1159,25 @@ export default class OrderShippedNotification extends Notification {
 
 await notify(user, new OrderShippedNotification(order))
 ```
+
+**Privacy-first analytics** (§7.7) via `analytics`/`ts-analytics` — a cookieless, self-hosted alternative to Google Analytics, in the spirit of Plausible and Fathom:
+
+- **Cookieless visitor counting** — a unique visitor is a SHA-256 hash of IP + user-agent + site, salted with an HMAC secret that **rotates daily**. No cookies, no cross-day correlation, no consent banner required.
+- **No PII** — IP anonymization is on by default; geolocation is opt-in and country-level; Do Not Track and per-path/IP exclusions are honored.
+- **Rich model** — pageviews, sessions, custom events, goals/conversions (with revenue), UTM campaigns, referrers, devices, web vitals, funnels, and real-time visitors.
+- **Two interfaces** — a ~3–4 KB dependency-free tracking script (auto pageviews, SPA route changes, outbound links, engagement) and a reporting API (`/api/sites/{siteId}/stats`, `/timeseries`, `/pages`, `/referrers`, `/countries`, `/campaigns`, `/goals`, `/realtime`, …).
+- **Storage** — DynamoDB single-table design with TTL-based retention and pre-computed daily rollups for cheap long-range queries.
+
+```typescript
+// auto-track requests; read a typed reporting API
+app.use(createServerTrackingMiddleware(driver, { excludedPaths: [/^\/api/, /^\/admin/] }))
+const stats = await createDashboardActions(driver).getDashboardStats({ startDate: '2024-01-01' })
+
+// client: record a custom event — no cookies set
+sa('track', 'signup', { plan: 'pro' })
+```
+
+It ships a Vue 3 dashboard (real-time counter, time series, breakdowns, funnels, goals) styled with Crosswind. As a recent (0.1.0) capability it is evolving quickly, but the privacy model—cookieless, daily-rotating-salt hashing, no raw IP storage—is real and core to the design.
 
 ## 16. CLI, Type Generation & Testing (Reference Implementation)
 
@@ -1034,7 +1233,18 @@ describe('CreatePostAction', () => {
 
 ## 17. Desktop & Multimodal Deployment (Reference Implementation)
 
-Stacks.js builds native desktop and mobile apps from the same web codebase using **Craft**, a Zig-based application framework offering a Tauri-like experience.
+Desktop, mobile, web, API, and CLI are all delivery targets (§3.1) over one application core. Stacks.js builds **native desktop apps today** from the web codebase using **Craft**, a Zig-based application framework offering a Tauri-like experience, with **native mobile (iOS/Android) on the near-term roadmap**.
+
+```
+                  Craft  ·  one web codebase
+                              │
+            ┌─────────────────┴─────────────────┐
+            ▼                                   ▼
+   ┌──────────────────────────┐    ┌──────────────────────┐
+   │  Desktop  (production)    │    │  Mobile  (roadmap)   │
+   │  macOS · Windows · Linux  │    │  iOS · Android       │
+   └──────────────────────────┘    └──────────────────────┘
+```
 
 | Metric | Craft | Electron | Tauri |
 |--------|-------|----------|-------|
@@ -1047,13 +1257,13 @@ Stacks.js builds native desktop and mobile apps from the same web codebase using
 | macOS | Production | WKWebView |
 | Windows | Production | WebView2 |
 | Linux | Production | WebKit2GTK |
-| iOS / Android | Beta | WKWebView / Android WebView |
+| iOS / Android | Roadmap | WKWebView / Android WebView |
 
 ```bash
 buddy build:desktop   # .app/.dmg, .exe/.msi, .deb/.rpm/.AppImage
 ```
 
-Craft injects a `window.craft` bridge (window control, system tray, lifecycle, notifications, dialogs, clipboard, system info) and ships 35 native UI components. The same codebase also targets standard web builds, standalone APIs/serverless (each route → a Lambda), CLI binaries, and publishable component/function libraries.
+Craft injects a `window.craft` bridge (window control, system tray, lifecycle, notifications, dialogs, clipboard, system info) and ships 35 native UI components. The same codebase also targets standard web builds, standalone APIs and serverless deployments (§14), CLI binaries, and publishable component/function libraries.
 
 ## 18. Companion Packages
 
@@ -1172,7 +1382,7 @@ This is the payoff of the protocol: knowledge, tooling patterns, and architectur
 
 ### 21.1 Reference Implementation (Stacks.js)
 
-**Version**: 0.70.45 — Closed Beta (January 2026). Production-ready for full-stack and API-only web applications, desktop apps (Craft: macOS/Windows/Linux), mobile (Craft: iOS/Android beta), and CLI tools/libraries. Sponsors include JetBrains and the Solana Foundation.
+**Version**: 0.70.45 — Closed Beta (January 2026). Production-ready for full-stack and API-only web applications, desktop apps (Craft: macOS/Windows/Linux), and CLI tools/libraries; native mobile (Craft: iOS/Android) is on the near-term roadmap. Sponsors include JetBrains and the Solana Foundation.
 
 - **Near-term**: additional ts-cloud drivers (GCP, Azure, Cloudflare); enhanced Craft mobile support; plugin marketplace.
 - **Medium-term**: additional auth credential drivers (session, JWT, OAuth) behind the §6.5 contract; real-time collaboration; edge-deployment optimizations.
@@ -1185,6 +1395,26 @@ This is the payoff of the protocol: knowledge, tooling patterns, and architectur
 
 ---
 
+## 22. Comparison with Existing Approaches
+
+Stacks shares DNA with the great full-stack frameworks but differs in two structural ways: it is a **portable specification** first, and it is **batteries-included without paid tiers**.
+
+| Dimension | Stacks | Laravel (PHP) | Rails (Ruby) | Next.js (JS) |
+|-----------|--------|---------------|--------------|--------------|
+| Primary artifact | Protocol + reference impl | Framework | Framework | Framework |
+| Portable across languages | Yes (by design) | No | No | No |
+| Convention over configuration | Yes | Yes | Yes | Partial |
+| Architecture | Model–View–Action | MVC | MVC | File-based routing |
+| Full-stack scope | Front · back · data · cloud · desktop | Back (front via add-ons) | Back (front via add-ons) | Front + API routes |
+| Built-in auth / queues / realtime / IaC | Included, free | Mixed (some paid services) | Mostly (via gems) | Bring-your-own |
+| Server fleet + serverless management | Built-in (ts-cloud) | Paid (Forge / Vapor) | Third-party | Platform-tied (Vercel) |
+| End-to-end type safety | Required by protocol | Optional | Optional | Partial |
+| Runtime | Implementation-defined (Bun in ref impl) | PHP | Ruby | Node / edge |
+
+The point is not that Stacks is uniformly "better." It occupies a different layer: Laravel, Rails, and Next.js are each a single framework bound to a single language, whereas Stacks is a *specification those very patterns can be expressed against*—with Stacks.js as one concrete, complete realization. Notably, capabilities that Laravel splits into paid first-party services (Forge for servers, Vapor for serverless) are part of the protocol and shipped free in the reference implementation via **ts-cloud** (§14).
+
+---
+
 # Part IV: Appendices
 
 ## Appendix A: Capability Domains → Reference Modules
@@ -1194,6 +1424,7 @@ The protocol counts *capabilities* (§5); the reference implementation realizes 
 | Capability domain | Reference modules (`@stacksjs/…`) |
 |-------------------|-----------------------------------|
 | Routing / Lifecycle | `router`, `server`, `api`, `actions`, `error-handling` |
+| API | `api` (resources, OpenAPI, fetcher), `router` (resource routing) |
 | Validation | `validation` |
 | Data Modeling | `database`, `orm`, `query-builder` |
 | Authentication | `auth`, `security` |
@@ -1202,6 +1433,7 @@ The protocol counts *capabilities* (§5); the reference implementation realizes 
 | Real-Time | `realtime` |
 | Notifications | `notifications`, `sms`, `push`, `chat` |
 | AI Integration | `ai`, `buddy`, `chat` |
+| Observability | `logging` (Clarity), `health` |
 | Infrastructure | `cloud`, `deploy`, `dns`, `health`, `tunnel` |
 | Frontend / Views | `ui`, `components`, `stx`, `composables` |
 | Utilities | `strings`, `arrays`, `objects`, `collections`, `datetime`, `slug`, `faker`, `enums`, `path` |
@@ -1256,7 +1488,7 @@ buddy schedule:run     Run the scheduler
 
 ---
 
-## 22. Conclusion
+## 23. Conclusion
 
 Stacks separates the *idea* of a full-stack framework from any single *expression* of it. **The protocol** captures the conventions, architecture, and interface contracts that make full-stack development coherent—as a portable, versioned specification rather than as code locked inside one language. **Stacks.js** proves that specification in practice: a Complete, Bun-native, MIT-licensed implementation that is fast, type-safe, batteries-included, and pleasant to use.
 

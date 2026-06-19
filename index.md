@@ -22,8 +22,10 @@ features:
     details: Directory layout, the Model–View–Action architecture, and naming rules learned once apply to every conformant implementation, in any language.
   - title: AI-First Development
     details: A provider-agnostic AI integration contract — Claude, OpenAI, and local models — powers in-app features and the Buddy development assistant.
-  - title: Zero-Dependency Cloud
-    details: Driver-based infrastructure-as-code via ts-cloud — no SDK required. AWS support today, with more provider drivers planned.
+  - title: Servers & Serverless, Built In
+    details: ts-cloud manages both long-lived server fleets and serverless deployments from one config — the Forge + Vapor experience, open and free. Zero-dependency, AWS and Hetzner drivers today.
+  - title: Privacy-First Analytics
+    details: Cookieless, no-PII product analytics as a core capability (via ts-analytics) — daily-rotating-salt visitor hashing, no consent banner required.
   - title: End-to-End Type Safety
     details: An unbroken type contract from data definitions to API responses to views. In Stacks.js, the compiler is your documentation.
 ---
