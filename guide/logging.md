@@ -7,6 +7,8 @@ description: Structured logging, log channels, log levels, and log viewers in St
 
 Stacks.js includes Clarity, a powerful structured logging system that supports multiple channels, log levels, context enrichment, and integrations with external log management services.
 
+> **Protocol context** — This guide covers the **Stacks.js reference implementation**. The behavior it relies on is specified by **the Observability contract** in the [Stacks Protocol white paper](/) (§7.6), so these concepts transfer to any conformant implementation — the specific APIs shown here are TypeScript/Bun.
+
 ## Configuration
 
 ### Logging Configuration

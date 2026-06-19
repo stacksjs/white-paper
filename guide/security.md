@@ -5,7 +5,64 @@ description: CSRF protection, XSS prevention, rate limiting, encryption, and sec
 
 # Security
 
-Stacks.js provides comprehensive security features out of the box, including CSRF protection, XSS prevention, rate limiting, encryption, and secure headers. This guide covers security best practices and configuration.
+Stacks.js provides comprehensive security features out of the box, including encrypted secrets, CSRF protection, XSS prevention, rate limiting, encryption, and secure headers. This guide covers security best practices and configuration.
+
+> **Protocol context** — This guide covers the **Stacks.js reference implementation**. The behavior it relies on is specified by **Security & Secret Management** in the [Stacks Protocol white paper](/) (§7.8), so these concepts transfer to any conformant implementation — the specific APIs shown here are TypeScript/Bun.
+
+## Encrypted Environment Variables
+
+Stacks ships a **dotenvx-inspired encrypted `.env`** (via `@stacksjs/env`). Secrets are encrypted *in place* in the `.env` file you commit, and only a private key — kept out of the repository — can decrypt them at runtime. You version your entire configuration without ever exposing a secret.
+
+**How it works:**
+
+- A committed **`DOTENV_PUBLIC_KEY`** encrypts values. Encrypted values are written with an `enc:` prefix and sealed with **AES-256-GCM** (the ciphertext bundles the IV, auth tag, and payload).
+- A matching **`DOTENV_PRIVATE_KEY`**, stored in **`.env.keys`** (git-ignored), decrypts them at runtime.
+- Each environment can have its own keypair: `DOTENV_PUBLIC_KEY_PRODUCTION`, `DOTENV_PRIVATE_KEY_PRODUCTION`, etc.
+
+```bash
+# .env  (safe to commit)
+DOTENV_PUBLIC_KEY="03a1f2…"
+DB_PASSWORD="enc:Yx9kQ2…"
+STRIPE_SECRET="enc:Qm2v8…"
+```
+
+```bash
+# .env.keys  (git-ignored — never commit this)
+DOTENV_PRIVATE_KEY="b7f2…"
+```
+
+**Working with secrets:**
+
+```bash
+# Set an encrypted value (encrypts with the public key, writes enc:… into .env)
+buddy env:set STRIPE_SECRET sk_live_xxx
+
+# Encrypt an entire plaintext .env in place
+buddy env:encrypt
+
+# Decrypt (e.g., for local inspection)
+buddy env:decrypt
+
+# Rotate the keypair and re-encrypt every value
+buddy env:rotate
+```
+
+**Reading secrets in code** — the typed `env` proxy auto-coerces values and decrypts transparently:
+
+```typescript
+import { env } from '@stacksjs/env'
+
+const port: number = env.PORT          // "3000" → 3000
+const debug: boolean = env.DEBUG       // "true" → true
+const stripe: string = env.STRIPE_SECRET // decrypted at access time
+
+// Fail fast at boot if required secrets are missing
+requireEnv(['APP_KEY', 'DB_PASSWORD', 'STRIPE_SECRET'])
+```
+
+**Deployment** — `ts-cloud` injects only the **private key** as a managed secret (AWS Secrets Manager / SSM Parameter Store); the encrypted `.env` ships with your code. The plaintext secrets never leave your machine or your secret manager.
+
+> The parser supports variable expansion (`${VAR}`, `${VAR:-default}`) but restricts command substitution to a small whitelist (`date`, `hostname`, `whoami`, …), closing a common `.env` arbitrary-code-execution vector.
 
 ## Configuration
 
@@ -602,17 +659,14 @@ const codes = await TwoFactor.generateRecoveryCodes(user)
 ### Login Throttling
 
 ```typescript
-// Automatic login throttling
-// After 5 failed attempts: 1 minute lockout
-// After 10 failed attempts: 5 minute lockout
-// After 15 failed attempts: 15 minute lockout
+// Automatic per-account login throttling
+// After 5 failed attempts: 15 minute lockout
 
 // config/auth.ts
 export default {
   throttle: {
     maxAttempts: 5,
-    decayMinutes: 1,
-    lockoutMinutes: [1, 5, 15, 60],
+    lockoutMinutes: 15,
   },
 }
 ```

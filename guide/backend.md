@@ -5,6 +5,8 @@ description: Building APIs and business logic with Stacks.js
 
 # Backend Development
 
+> **Protocol context** — This guide covers the **Stacks.js reference implementation**. The behavior it relies on is specified by **Routing, Actions & the request lifecycle** in the [Stacks Protocol white paper](/) (§3, §6.1, §6.2), so these concepts transfer to any conformant implementation — the specific APIs shown here are TypeScript/Bun.
+
 ## Routing System
 
 Stacks routing extends `bun-router` with Laravel-inspired patterns:

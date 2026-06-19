@@ -21,11 +21,11 @@ Stacks is in **Closed Beta** (January 2026) with active development. The framewo
 - 77 core framework modules
 - bun-router with 25+ middleware
 - bun-query-builder with ORM capabilities
-- ts-cloud with 47 AWS services and 13 presets
+- ts-cloud with 54 AWS services and 21 presets, plus a production Hetzner driver (server fleets and serverless)
 - STX templating with 40+ directives
 - ts-auth with session, JWT, OAuth (11 providers), WebAuthn, and TOTP
 - Real-time broadcasting with native WebSocket server
-- Craft desktop framework (5 platforms)
+- Craft desktop framework (macOS, Windows, Linux; mobile on the roadmap)
 
 Active sponsors include JetBrains and Solana Foundation.
 
@@ -33,8 +33,8 @@ Active sponsors include JetBrains and Solana Foundation.
 
 ### Near-term
 
-- ts-cloud drivers for GCP, Azure, Cloudflare, DigitalOcean, and Hetzner
-- Enhanced mobile support in Craft
+- ts-cloud drivers for GCP, Azure, Cloudflare, and DigitalOcean (AWS and Hetzner ship today)
+- Native mobile (iOS/Android) support in Craft
 - Visual component builder
 - Plugin marketplace
 

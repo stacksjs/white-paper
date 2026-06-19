@@ -5,6 +5,10 @@ description: The ecosystem of packages that power Stacks.js
 
 # Companion Packages
 
+These are the packages of the **Stacks.js reference implementation** (white paper §18, Appendix A). Each maps to a capability in the Stacks Protocol; the specific packages and Bun tooling shown here are TypeScript/Bun-specific.
+
+> **Protocol context** — This page describes the **Stacks.js reference implementation**. The capabilities map to contracts in the [Stacks Protocol white paper](/); the specific packages and Bun tooling shown here are TypeScript/Bun-specific.
+
 ## bun-router
 
 A high-performance, feature-rich HTTP router designed specifically for Bun with Laravel-inspired APIs:
@@ -384,9 +388,9 @@ const apiUser = auth.guard('api').user()
 Features:
 
 - **Multiple Guards**: Session, JWT, API tokens
-- **OAuth Support**: GitHub, Google, Twitter, Discord
+- **OAuth Support**: 11 providers (GitHub, Google, Twitter, Discord, and more)
 - **MFA/2FA**: TOTP, SMS, email verification
-- **Passwordless**: Magic links, WebAuthn support
+- **Passwordless**: WebAuthn and TOTP
 
 ## ts-broadcasting
 

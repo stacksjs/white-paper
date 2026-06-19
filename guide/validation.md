@@ -7,6 +7,8 @@ description: Type-safe schema validation with fluent API in Stacks.js
 
 Stacks.js includes `ts-validation`, a lightweight, type-safe validation library with a fluent chainable API. It provides blazing-fast performance, comprehensive error reporting, and full TypeScript support.
 
+> **Protocol context** — This guide covers the **Stacks.js reference implementation**. The behavior it relies on is specified by **the Validation contract** in the [Stacks Protocol white paper](/) (§6.3), so these concepts transfer to any conformant implementation — the specific APIs shown here are TypeScript/Bun.
+
 ## Overview
 
 ```typescript

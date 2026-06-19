@@ -7,6 +7,8 @@ description: RESTful patterns, API versioning, pagination, rate limiting, and AP
 
 Stacks.js provides tools and conventions for building well-designed, consistent, and developer-friendly APIs. This guide covers RESTful patterns, versioning, pagination, rate limiting, and API documentation.
 
+> **Protocol context** — This guide covers the **Stacks.js reference implementation**. The behavior it relies on is specified by **the API contract** in the [Stacks Protocol white paper](/) (§6.9), so these concepts transfer to any conformant implementation — the specific APIs shown here are TypeScript/Bun.
+
 ## RESTful Conventions
 
 ### Resource Naming
@@ -664,6 +666,8 @@ export const ErrorCodes = {
 ## API Documentation
 
 ### OpenAPI/Swagger
+
+An OpenAPI 3.0 spec is generated automatically from your routes and served at `/__openapi.json` — no manual annotation required. The options below customize that output.
 
 ```typescript
 // Generate OpenAPI spec from routes

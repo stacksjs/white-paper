@@ -5,9 +5,13 @@ description: Securing your Stacks.js application
 
 # Authentication & Security
 
+Stacks authentication is passwordless-first (WebAuthn/passkeys with TOTP MFA) while also shipping session, JWT, and OAuth — covering the full range of authentication flows from a single contract.
+
+> **Protocol context** — This guide covers the **Stacks.js reference implementation**. The behavior it relies on is specified by **the Authentication contract** in the [Stacks Protocol white paper](/) (§6.5), so these concepts transfer to any conformant implementation — the specific APIs shown here are TypeScript/Bun.
+
 ## ts-auth Integration
 
-Stacks authentication is powered by `ts-auth`, a comprehensive authentication library that provides **Laravel-style authentication patterns** with modern enhancements. It supports session-based authentication, JWT tokens, OAuth providers (11 built-in), WebAuthn (Passkeys), and TOTP-based multi-factor authentication.
+Stacks authentication is powered by `ts-auth`, a comprehensive, passwordless-first authentication library. It leads with WebAuthn (passkeys) and TOTP-based multi-factor authentication, and also ships session-based authentication, JWT tokens (with access + refresh and a revocation blacklist), and OAuth providers (11 built-in). Per-account login rate limiting and a 50+ event audit log are included.
 
 ```typescript
 // config/auth.ts

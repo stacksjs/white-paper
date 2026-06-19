@@ -307,6 +307,7 @@ The protocol organizes functionality into **capability domains**. Each domain ha
 | **Validation** | Declarative, composable schemas with type inference (§6.3) |
 | **Data Modeling** | Models, relationships, migrations, query building (§6.4) |
 | **Authentication** | Identity, credentials, and authorization checks (§6.5) |
+| **Security & Secrets** | Secure defaults, injection/XSS safety, crypto, encrypted-in-repo secrets, audit log (§7.8) |
 | **Drivers** | Pluggable backends for storage, cache, queue, mail, cloud (§6.6) |
 | **Configuration** | Typed, environment-aware, capability-scoped config (§6.8) |
 | **Queues & Scheduling** | Deferred and recurring background work (§7.1) |
@@ -563,6 +564,19 @@ The protocol treats product analytics as a core, privacy-preserving capability�
 
 Because no consent-gating identifiers are used, conformant analytics SHOULD be operable without a cookie-consent banner. Storage and geolocation lookups are **drivers** (§6.6).
 
+### 7.8 Security & Secret Management
+
+Security is a protocol-level concern, not an add-on. A conformant implementation MUST be secure by default and MUST provide:
+
+- **Secure defaults** — protective response headers (content-type-options, frame-options, referrer-policy; HSTS in production), CSRF protection for state-changing requests, and rate limiting MUST be available and applied by default where relevant.
+- **Injection safety** — the data layer MUST default to parameterized queries; raw query construction from unsanitized input MUST be prevented (ideally rejected at the type level).
+- **Output safety** — the view layer MUST escape output by default and evaluate template expressions in a sandbox, preventing XSS.
+- **Cryptographic primitives** — authenticated encryption (`encrypt`/`decrypt`) and modern password hashing (`hash`/`verify`) MUST be provided with safe, current defaults.
+- **Encrypted secrets in the repository** — the protocol specifies that configuration secrets MAY be stored **encrypted in version control**: a committed *public* key encrypts values, and a *private* key held outside the repository decrypts them at runtime. Teams can version their full configuration without exposing secrets, and deployment injects only the private key. (This is the model popularized by dotenvx.)
+- **Auditability** — security-relevant events (authentication, authorization, secret access, rate-limit and CSRF failures) SHOULD be recordable to a pluggable audit log.
+
+Secret stores, audit backends, and rate-limit stores are **drivers** (§6.6).
+
 ---
 
 # Part II: Stacks.js — The Reference Implementation
@@ -579,6 +593,7 @@ Stacks.js is a **Complete** conformant implementation (§2.2). It is a rapid ful
 - **Database**: multi-dialect ORM, query builder, migrations, seeders
 - **Infrastructure**: ts-cloud — zero-dependency IaC that manages both long-lived server fleets and serverless deployments
 - **Services**: authentication, payments, email, SMS, notifications, queues
+- **Security**: encrypted-in-repo secrets (dotenvx-style `.env`), CSRF, security headers, rate limiting, AES-GCM crypto, bcrypt/Argon2 hashing, audit logging
 - **Observability**: structured logging (Clarity), health checks, request tracing
 - **AI**: multi-provider AI integration, the Buddy assistant, code generation
 - **CLI**: the `buddy` command-line toolkit
@@ -979,9 +994,9 @@ const users = await User.query().with('posts', 'team', 'profile').where('active'
 const posts = await Post.query().with('author.team', 'comments.user').get()
 ```
 
-## 12. Authentication & Security (Reference Implementation) — satisfies §6.5
+## 12. Authentication, Security & Secrets (Reference Implementation) — satisfies §6.5, §7.8
 
-Stacks.js implements authentication with **`ts-auth`**, focused on **passwordless** authentication (WebAuthn/passkeys) and TOTP-based MFA—the protocol's RECOMMENDED mechanisms.
+Stacks.js implements authentication with **`ts-auth`**, a comprehensive library that is **passwordless-first** (WebAuthn/passkeys and TOTP MFA — the protocol's RECOMMENDED mechanisms) while also shipping traditional credential drivers: **sessions**, **JWT** (HS/RS/ES 256/384/512, with access+refresh token pairs and a revocation blacklist), and **OAuth** across 11 providers — all behind the one §6.5 contract.
 
 ```typescript
 // config/auth.ts
@@ -1003,9 +1018,56 @@ const verification = await verifyRegistrationResponse(credential, expectedChalle
 if (verification.verified) { /* store verification.registrationInfo.credential */ }
 ```
 
-TOTP second factor, browser-capability detection (`browserSupportsWebAuthn`, `platformAuthenticatorIsAvailable`), and conventional security features—CSRF protection, rate limiting, security headers (HSTS/CSP), and encryption/hashing helpers—are all provided. Session, JWT, and OAuth mechanisms are on the roadmap as additional credential drivers behind the same contract.
+TOTP second factor, browser-capability detection (`browserSupportsWebAuthn`, `platformAuthenticatorIsAvailable`), per-account login rate limiting (5 failures → 15-minute lockout), and a comprehensive audit log (§12.7) round out the auth layer.
 
-### 12.5 Observability — satisfies §7.6
+### 12.5 Encrypted Environment & Secret Management — satisfies §7.8
+
+Stacks.js realizes the protocol's encrypted-secrets contract with `@stacksjs/env`, a **dotenvx-inspired** encrypted `.env` system. Secrets are encrypted **in place** in the committed `.env` file; only a private key—kept out of the repository—decrypts them at runtime.
+
+```
+  .env  (safe to commit)                      .env.keys  (git-ignored)
+  ┌───────────────────────────────┐          ┌────────────────────────────┐
+  │ DOTENV_PUBLIC_KEY=03a1f2…      │ ───────▶ │ DOTENV_PRIVATE_KEY=b7f2…   │
+  │ DB_PASSWORD=enc:Yx9kQ2…        │ encrypt  │  decrypts at runtime,       │
+  │ STRIPE_SECRET=enc:Qm2v8…       │ ◀─────── │  injected at deploy time    │
+  └───────────────────────────────┘ decrypt  └────────────────────────────┘
+```
+
+- **Crypto** — each value is sealed with **AES-256-GCM** (authenticated encryption) under a key derived from the committed `DOTENV_PUBLIC_KEY`; the matching `DOTENV_PRIVATE_KEY` lives in `.env.keys` (git-ignored). Encrypted values carry an `enc:` prefix; the ciphertext bundles IV, auth tag, and payload.
+- **Per-environment keys** — `DOTENV_PUBLIC_KEY_PRODUCTION`, `…_STAGING`, etc. give each environment its own keypair.
+- **Workflow** —
+  ```bash
+  buddy env:set STRIPE_SECRET sk_live_…   # encrypts with the public key, writes enc:… to .env
+  buddy env:encrypt                       # encrypt an entire plaintext .env in place
+  buddy env:rotate                        # rotate the keypair and re-encrypt
+  ```
+- **Deploy integration** — ts-cloud (§14) injects only the private key as a managed secret (Secrets Manager / SSM); the encrypted `.env` ships with the code.
+- **Safe parsing** — the parser supports variable expansion but only a **whitelisted** set of command substitutions (no arbitrary shell), closing a common `.env` code-execution vector.
+- **Typed access** — `env.PORT` returns a coerced `number`; `requireEnv([...])` fails fast at boot when required secrets are missing.
+
+### 12.6 Cryptography & Hashing — satisfies §7.8
+
+```typescript
+import { encrypt, decrypt } from '@stacksjs/security'
+const sealed = await encrypt(secret)   // AES-GCM, 600,000 PBKDF2-SHA256 iterations (OWASP 2026)
+const clear  = await decrypt(sealed)   // versioned format: 0x01 | salt | IV | ciphertext
+```
+
+Password hashing uses **bcrypt** (12 rounds) or **Argon2id** (64 MiB, 2 passes), with Laravel-compatible algorithm detection and `needsRehash()` for transparent upgrades. Webhook signatures are verified with timing-safe HMAC (Stripe with a 300 s replay tolerance, GitHub, and generic HMAC).
+
+### 12.7 Defense in Depth — satisfies §7.8
+
+| Concern | Implementation |
+|---------|----------------|
+| **Security headers** | `nosniff`, `X-Frame-Options: SAMEORIGIN`, `Referrer-Policy`, and (in production) 1-year HSTS by default; CSP opt-in. User-set headers are never overwritten. |
+| **CSRF** | Session-bound 32-byte token, verified in constant time; read from header, form, or JSON body; `HttpOnly`/`Secure`/`SameSite=Lax` cookies. |
+| **Rate limiting** | `rateLimit('login', 5, { identity: email }).per('minute')`; identity resolves user → token → IP; returns `429` + `Retry-After`. |
+| **SQL injection** | Parameterized by default; `whereRaw` rejects bare strings at the **type level**, requiring a `sql\`…\`` tagged template (audit #1858). |
+| **XSS** | STX escapes output by default and evaluates expressions in a sandbox (no `eval`/`Function`). |
+| **Audit logging** | 50+ typed auth/security events (`login.*`, `token.*`, `security.csrf_failure`, …) to a pluggable store, with IP/UA/session context and a query API. |
+| **WAF & secret scanning** | At deploy, ts-cloud provisions AWS WAF and runs a pre-deploy secret scan (35+ patterns) that blocks credential leaks before shipping. |
+
+### 12.8 Observability — satisfies §7.6
 
 Stacks.js implements structured logging with **Clarity** (pretty output in development, JSON in production), health checks via the `health` module, and request tracing with correlation IDs carried from `bun-router` through actions, jobs, and notifications:
 
@@ -1385,7 +1447,7 @@ This is the payoff of the protocol: knowledge, tooling patterns, and architectur
 **Version**: 0.70.45 — Closed Beta (January 2026). Production-ready for full-stack and API-only web applications, desktop apps (Craft: macOS/Windows/Linux), and CLI tools/libraries; native mobile (Craft: iOS/Android) is on the near-term roadmap. Sponsors include JetBrains and the Solana Foundation.
 
 - **Near-term**: additional ts-cloud drivers (GCP, Azure, Cloudflare); enhanced Craft mobile support; plugin marketplace.
-- **Medium-term**: additional auth credential drivers (session, JWT, OAuth) behind the §6.5 contract; real-time collaboration; edge-deployment optimizations.
+- **Medium-term**: real-time collaboration; edge-deployment optimizations; database-level encryption-at-rest; the high-level `server:*` management CLI for ts-cloud.
 - **Long-term**: distributed-system primitives; multi-region deployment automation; deeper AI-assisted generation.
 
 ### 21.2 Protocol
@@ -1408,6 +1470,7 @@ Stacks shares DNA with the great full-stack frameworks but differs in two struct
 | Full-stack scope | Front · back · data · cloud · desktop | Back (front via add-ons) | Back (front via add-ons) | Front + API routes |
 | Built-in auth / queues / realtime / IaC | Included, free | Mixed (some paid services) | Mostly (via gems) | Bring-your-own |
 | Server fleet + serverless management | Built-in (ts-cloud) | Paid (Forge / Vapor) | Third-party | Platform-tied (Vercel) |
+| Encrypted secrets in version control | Built-in (encrypted `.env`) | Third-party (dotenvx) | Third-party | Bring-your-own |
 | End-to-end type safety | Required by protocol | Optional | Optional | Partial |
 | Runtime | Implementation-defined (Bun in ref impl) | PHP | Ruby | Node / edge |
 
@@ -1485,6 +1548,26 @@ buddy schedule:run     Run the scheduler
 - **Driver** — a pluggable backend behind a capability interface (§6.6).
 - **Capability domain** — a unit of functionality with a defined interface contract (§5).
 - **Type contract** — the requirement that types flow unbroken from data definitions to delivery (§6.7).
+
+## Appendix E: Cloud Capability Reference (ts-cloud)
+
+A condensed reference for §14. ts-cloud is the reference implementation of the infrastructure contract (§7.5).
+
+**Deployment modes**
+
+| Mode | What it manages | Primitives |
+|------|-----------------|------------|
+| **Server** (Forge-equivalent) | Long-lived fleets | EC2 + Auto Scaling Group · ALB/NLB · RDS · ElastiCache · SSM deploys |
+| **Serverless** (Vapor-equivalent) | One artifact → 3 Lambdas | HTTP (API Gateway v2) · SQS queue worker · CLI/scheduler (EventBridge) |
+| **Hybrid** | Static front + serverless/Fargate back | S3 + CloudFront · ECS Fargate · RDS · Redis |
+
+**Drivers** — AWS (production), Hetzner (production); GCP, Azure, Cloudflare, DigitalOcean (planned).
+
+**Service coverage** — 54 AWS service clients, including compute (EC2, ECS, Lambda), data (RDS, DynamoDB, ElastiCache, OpenSearch), networking/CDN (VPC, ALB/NLB, CloudFront, Route53, ACM), messaging (SQS, SNS, EventBridge, SES), security (WAF, Secrets Manager, KMS, IAM), and AI (Bedrock, Rekognition, Textract, Transcribe, Polly, Translate, Comprehend).
+
+**Presets (21)** — static site · Node server · Node serverless · serverless Node · full-stack · API backend · WordPress · JAMstack · microservices · real-time · data pipeline · ML API · traditional web app · Laravel · serverless Laravel · dashboard · (+ composable variants).
+
+**Operational guarantees** — zero-dependency Signature V4 signing · `--dry-run` stack diff with replacement/danger detection · CloudFormation as state (no local state file) · idempotent re-deploys · pre-deploy secret scan (35+ patterns) · multi-provider DNS with automatic ACM issuance.
 
 ---
 

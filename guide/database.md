@@ -7,6 +7,8 @@ description: Comprehensive guide to Stacks.js database layer and narrowly-typed 
 
 Stacks.js includes **bun-query-builder**, a fully-typed, model-driven ORM built specifically for Bun's native SQL API. It combines the elegance of Laravel's Eloquent with exceptional TypeScript type inference, delivering both developer experience and performance.
 
+> **Protocol context** — This guide covers the **Stacks.js reference implementation**. The behavior it relies on is specified by **the Data Model & Persistence contract** in the [Stacks Protocol white paper](/) (§6.4), so these concepts transfer to any conformant implementation — the specific APIs shown here are TypeScript/Bun.
+
 ## Key Features
 
 - **Narrowly Typed**: Types flow from model definitions through queries to results with precise inference

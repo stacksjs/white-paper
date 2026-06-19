@@ -5,7 +5,9 @@ description: Companion libraries powering Stacks.js - ts-collect, ts-datetime, r
 
 # Library Showcases
 
-Stacks.js is powered by a suite of companion libraries, each designed as a standalone package that can be used independently. These zero-dependency libraries form the foundation of the framework.
+Stacks.js is powered by a suite of companion libraries, each designed as a standalone package that can be used independently. These zero-dependency libraries form the foundation of the reference implementation.
+
+> **Protocol context** — This page describes companion libraries of the **Stacks.js reference implementation**. The capabilities map to contracts in the [Stacks Protocol white paper](/); the specific packages and Bun tooling shown here are TypeScript/Bun-specific.
 
 ## ts-collect
 

@@ -7,6 +7,8 @@ description: Transactional email, templates, and multi-channel notifications in 
 
 Stacks.js provides a unified system for sending transactional emails and multi-channel notifications. Send messages via email, SMS, push notifications, Slack, Discord, and more—all with a consistent API.
 
+> **Protocol context** — This guide covers the **Stacks.js reference implementation**. The behavior it relies on is specified by **the Notifications contract** in the [Stacks Protocol white paper](/) (§7.3), so these concepts transfer to any conformant implementation — the specific APIs shown here are TypeScript/Bun.
+
 ## Email
 
 ### Configuration

@@ -5,7 +5,9 @@ description: The Bun plugin system and Stacks.js integrations
 
 # Bun Plugins Ecosystem
 
-Stacks leverages Bun's powerful plugin architecture to extend bundling, module resolution, and runtime capabilities. The framework includes several Bun plugins out of the box and provides patterns for creating custom plugins.
+The **Stacks.js reference implementation** leverages Bun's powerful plugin architecture to extend bundling, module resolution, and runtime capabilities. It includes several Bun plugins out of the box and provides patterns for creating custom plugins.
+
+> **Protocol context** — This page describes Bun-specific tooling of the **Stacks.js reference implementation**. Bun plugins are reference-implementation-specific and are *not* part of the language-agnostic Stacks Protocol; the capabilities they enable map to contracts in the [Stacks Protocol white paper](/).
 
 ## Plugin Architecture
 

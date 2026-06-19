@@ -7,6 +7,8 @@ description: Built-in UI components available in Stacks.js
 
 Stacks.js includes 43+ production-ready UI components built with STX and styled with Crosswind. All components are tree-shakeable, accessible, and support dark mode.
 
+> **Protocol context** — This guide covers the **Stacks.js reference implementation**. The behavior it relies on is specified by **the View component model** in the [Stacks Protocol white paper](/) (§9.1), so these concepts transfer to any conformant implementation — the specific APIs shown here are TypeScript/Bun.
+
 ## Form Input Components
 
 ### TextInput

@@ -26,6 +26,8 @@ features:
     details: ts-cloud manages both long-lived server fleets and serverless deployments from one config — the Forge + Vapor experience, open and free. Zero-dependency, AWS and Hetzner drivers today.
   - title: Privacy-First Analytics
     details: Cookieless, no-PII product analytics as a core capability (via ts-analytics) — daily-rotating-salt visitor hashing, no consent banner required.
+  - title: Encrypted Secrets, Committed Safely
+    details: A dotenvx-inspired encrypted .env — values sealed with AES-256-GCM under a committed public key, decrypted by a private key kept out of the repo. Version your whole config without leaking secrets.
   - title: End-to-End Type Safety
     details: An unbroken type contract from data definitions to API responses to views. In Stacks.js, the compiler is your documentation.
 ---

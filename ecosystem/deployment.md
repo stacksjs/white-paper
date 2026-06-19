@@ -5,6 +5,10 @@ description: Deploying Stacks.js applications across different platforms
 
 # Multimodal Deployment
 
+The Stacks.js reference implementation can target the web, desktop, CLIs, libraries, and serverless from a single codebase, with infrastructure managed by ts-cloud.
+
+> **Protocol context** — This page describes how the **Stacks.js reference implementation** satisfies the **Infrastructure & deployment** contract (§7.5, §14) of the [Stacks Protocol white paper](/); the specific packages and Bun tooling shown here are TypeScript/Bun-specific.
+
 ## Web Applications
 
 Standard web application deployment:
@@ -73,15 +77,13 @@ buddy build:api
 buddy deploy:serverless
 ```
 
-Each route becomes a Lambda function:
+In serverless mode, ts-cloud packages a single build artifact into three coordinated AWS Lambda functions — rather than one function per route:
 
 ```
-functions/
-├── api-users-index.js
-├── api-users-show.js
-├── api-users-store.js
-├── api-users-update.js
-└── api-users-destroy.js
+serverless artifact
+├── http   → API Gateway HTTP API v2   (handles all routes)
+├── queue  → SQS event-source worker   (background jobs)
+└── cli    → EventBridge scheduler      (migrations, cron, commands)
 ```
 
 ## CLI Applications

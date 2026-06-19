@@ -5,6 +5,10 @@ description: Building UI components with Stacks.js
 
 # Frontend Development
 
+Stacks lets you build the View layer once and ship it to multiple delivery targets — web, JSON API, desktop, mobile, and CLI — from a single codebase.
+
+> **Protocol context** — This guide covers the **Stacks.js reference implementation**. The behavior it relies on is specified by **the View layer & delivery targets** in the [Stacks Protocol white paper](/) (§3.1, §9), so these concepts transfer to any conformant implementation — the specific APIs shown here are TypeScript/Bun.
+
 ## UI Components (STX & Web Components)
 
 Stacks provides a component system powered by STX that outputs standard Web Components:
