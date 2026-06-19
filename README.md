@@ -244,6 +244,29 @@ Because business logic lives in transport-independent Actions (data in Models, p
 
 A conformant implementation MUST be able to expose the same Action through at least the **web** and **API** targets; **desktop**, **mobile**, and **CLI** targets are RECOMMENDED where the host platform supports them. The defining requirement: adding a target does not require rewriting business logic—only adapting how input arrives and how output is rendered.
 
+### 3.2 The Model as Single Source of Truth
+
+The protocol elevates the Model beyond a data class. A **typed model definition is the single source of truth** from which much of the application is *derived* rather than hand-written. From one declaration of an entity—its fields (with types and constraints), relationships, and the capabilities it opts into—a conformant implementation derives:
+
+```
+                     Model definition  (typed: fields · rules · relations · traits)
+                                       │   single source of truth
+        ┌───────────────┬─────────────┼─────────────┬────────────────┐
+        ▼               ▼             ▼             ▼                ▼
+   Static types   Persistence    Request        Default REST    Opt-in capabilities
+   (row / insert  schema /       validation     API surface     (search index ·
+    / update)     migration      (create/update) (CRUD + pages)  admin views · seeds)
+```
+
+The protocol's requirements here:
+
+- The **type contract** (§6.7) MUST hold: a change to the model's fields propagates to the derived types, persistence schema, and request/response shapes.
+- Request **validation** (§6.3) for create/update operations SHOULD be derivable from the model's field rules.
+- A **default API surface** (§6.9)—list, show, create, update, delete, with pagination and authorization—SHOULD be auto-providable for a model that opts in.
+- Secondary capabilities (search indexing, admin views, seed data) MAY be auto-provided from the same declaration.
+
+The developer declares *what the data is and what it may do*; the implementation provides the mechanical surface. This is the protocol's sharpest expression of convention over configuration: define the data once, and the types, validation, schema, and API move with it—they cannot drift, because they are derived, not copied.
+
 ---
 
 ## 4. Convention Specification
@@ -857,7 +880,7 @@ type CreateUser = Infer<typeof CreateUserSchema>   // §6.7 type contract
 
 ### 10.5 Building APIs — satisfies §6.9
 
-Stacks.js treats API construction as a first-class delivery target (§3.1): the same Actions that back web routes serve JSON APIs.
+Stacks.js treats API construction as a first-class delivery target (§3.1): the same Actions that back web routes serve JSON APIs. There are two paths to a REST resource—**derive it from a model** via the `useApi` trait (§11.4), or **define it explicitly** with the building blocks below. Both feed the same OpenAPI document.
 
 **Resourceful routing** expands to the full CRUD set, with `only`/`except`:
 
@@ -950,22 +973,42 @@ await DB.transaction(async (trx) => {
 
 ### 11.3 Models & Migrations
 
+Models are declared with `defineModel()`. Each attribute carries its type, fillability, visibility, validation rule, and casts; `traits` opt the model into framework behavior (timestamps, UUIDs, soft deletes, search, auth, an auto-served API, …); relationships, getters/setters, and indexes round out the definition.
+
 ```typescript
 // app/Models/User.ts
-import { Model } from '@stacksjs/orm'
+import { defineModel, schema } from '@stacksjs/orm'
 
-export default class User extends Model {
-  static table = 'users'
-  static fields = {
-    name: { type: 'string', required: true },
-    email: { type: 'string', unique: true, required: true },
-    password: { type: 'string', hidden: true },
-    role: { type: 'enum', values: ['user', 'admin'], default: 'user' },
+export default defineModel({
+  name: 'User',
+  table: 'users',
+  traits: { useTimestamps: true, useUuid: true, useAuth: true },
+  attributes: {
+    name:  { fillable: true, validation: { rule: schema.string().required() } },
+    email: { fillable: true, unique: true, validation: { rule: schema.string().email().required() } },
+    password: { hidden: true, validation: { rule: schema.string().min(8) } },
+    role: { fillable: true, cast: 'string', validation: { rule: schema.enum(['user', 'admin']) } },
+  },
+  relationships: { posts: { hasMany: 'Post' }, team: { belongsTo: 'Team' } },
+  get: { isAdmin: attrs => attrs.role === 'admin' },
+})
+```
+
+```typescript
+// database/migrations/2024_01_01_000000_create_users_table.ts
+import { Migration } from '@stacksjs/database'
+
+export default class CreateUsersTable extends Migration {
+  async up() {
+    await this.schema.create('users', (table) => {
+      table.id()
+      table.string('name')
+      table.string('email').unique()
+      table.enum('role', ['user', 'admin']).default('user')
+      table.timestamps()
+    })
   }
-
-  posts(): HasMany<Post> { return this.hasMany(Post) }
-  team(): BelongsTo<Team> { return this.belongsTo(Team) }
-  get isAdmin(): boolean { return this.role === 'admin' }
+  async down() { await this.schema.drop('users') }
 }
 ```
 
@@ -993,6 +1036,47 @@ Relationships cover one-to-one, one-to-many, many-to-many, has-through, and poly
 const users = await User.query().with('posts', 'team', 'profile').where('active', true).get()
 const posts = await Post.query().with('author.team', 'comments.user').get()
 ```
+
+### 11.4 Model-Driven Provisioning — satisfies §3.2
+
+Because the model is typed and declarative, Stacks.js can **derive an entire working backend from it**. The flagship example is the `useApi` trait: declaring it auto-serves a complete REST resource for the model—no routes, controllers, or serializers written by hand.
+
+```typescript
+// app/Models/Post.ts
+import { defineModel, schema } from '@stacksjs/orm'
+
+export default defineModel({
+  name: 'Post',
+  table: 'posts',
+  traits: {
+    useTimestamps: true,
+    useSoftDeletes: true,
+    useSearch: { searchable: ['title', 'body'], sortable: ['created_at'] },
+    useApi: { uri: 'posts', routes: ['index', 'show', 'store', 'update', 'destroy'] },
+  },
+  attributes: {
+    title: { fillable: true, validation: { rule: schema.string().required().min(3).max(255) } },
+    body:  { fillable: true, validation: { rule: schema.string().required() } },
+    published: { fillable: true, cast: 'boolean', validation: { rule: schema.boolean() } },
+  },
+})
+```
+
+From that one file, with no further code, Stacks.js provides:
+
+| Derived from the model | What you get |
+|------------------------|--------------|
+| **Static types** | `buddy generate:types` emits the table schema (`database/types.d.ts`) and `ModelRow<Post>` / `ModelCreateData<Post>` utilities; `--watch` regenerates them whenever the model changes |
+| **REST API** (`useApi`) | `GET /api/posts` (paginated; `?search=`, `?sort=`, `?include=`, `?fields=`, and filtering on allow-listed columns), `GET /api/posts/{id}`, `POST`, `PUT`/`PATCH`, `DELETE`, and bulk-delete |
+| **Request validation** | create/update bodies are validated from each attribute's `validation.rule` (partial validation on `PATCH`) |
+| **Security defaults** | write routes default to `auth` middleware; `hidden` fields are stripped from both input and output; per-row ownership checks when declared; soft-delete awareness |
+| **Search** | `useSearch` attaches `toSearchableObject()` and keeps the search index in sync on create/update/delete |
+| **Admin** | the model surfaces in the auto-generated dashboard browse views |
+| **OpenAPI** | the generated endpoints feed the live OpenAPI document (§10.5) |
+
+Declare the data once; the CRUD surface, validation, types, and search are **derived, not duplicated**, so they cannot drift out of sync with the model.
+
+> **What stays explicit (by design).** Migrations *can* be generated from a model, but they are applied deliberately rather than silently on every change. The dashboard auto-provides **browse** views, not full edit/create forms (yet). And business logic, authorization policies, and anything non-CRUD still live in hand-written Actions. Model-driven provisioning removes boilerplate—not control.
 
 ## 12. Authentication, Security & Secrets (Reference Implementation) — satisfies §6.5, §7.8
 
