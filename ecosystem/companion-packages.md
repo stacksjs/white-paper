@@ -169,7 +169,7 @@ error('Error messages', { error: err })
 // JSON output in production
 ```
 
-## STX & Headwind
+## STX & Crosswind
 
 ### STX - Blade-inspired templating
 
@@ -183,7 +183,7 @@ error('Error messages', { error: err })
 </x-layout>
 ```
 
-### Headwind - Utility CSS framework
+### Crosswind - Utility CSS framework
 
 ```html
 <div class="flex items-center gap-4 p-6 bg-white rounded-xl shadow-lg">
@@ -1386,7 +1386,7 @@ Performance comparison:
 | bun-query-builder | SQL queries | Stable |
 | bun-queue | Job queues | Stable |
 | stx | Templating | Stable |
-| headwind | CSS framework | Stable |
+| crosswind | CSS framework | Stable |
 | **Networking** | | |
 | rpx | Reverse proxy | Stable |
 | tlsx | TLS/certificates | Stable |

@@ -1,11 +1,11 @@
 ---
-title: Stacks.js - A Full-Stack Framework & Protocol
-description: A comprehensive framework and open protocol for building full-stack TypeScript applications with Bun
+title: Stacks - A Protocol & Reference Implementation for Full-Stack Apps
+description: An open, language-agnostic protocol for building full-stack applications, with Stacks.js as its TypeScript/Bun reference implementation.
 layout: home
 hero:
-  name: Stacks.js
-  text: Framework & Protocol
-  tagline: An open protocol and reference implementation for building full-stack TypeScript applications. The conventions of Laravel & Rails, the type safety of TypeScript, powered by Bun.
+  name: Stacks
+  text: Protocol & Reference Implementation
+  tagline: An open, language-agnostic protocol for building full-stack applications — and Stacks.js, its batteries-included reference implementation in TypeScript on Bun. The conventions of Laravel & Rails, made portable.
   actions:
     - theme: brand
       text: Get Started
@@ -15,61 +15,60 @@ hero:
       link: https://github.com/stacksjs/stacks
 features:
   - title: Open Protocol
-    details: Stacks defines conventions, interfaces, and specifications for full-stack TypeScript development. The framework is both the protocol and its reference implementation.
-  - title: Interoperable Modules
-    details: 77 independently usable packages following shared specifications. Use the complete stack or integrate individual modules with any TypeScript project.
-  - title: Bun-Native Runtime
-    details: Built exclusively for Bun, achieving exceptional startup times and request throughput that surpass traditional Node.js frameworks.
+    details: A language-agnostic specification of the conventions, architecture, and interface contracts a full-stack framework needs. The protocol defines what; implementations decide how.
+  - title: Reference Implementation
+    details: Stacks.js is the first conformant implementation — Bun-native, MIT-licensed, batteries-included, with 77 independently usable packages.
+  - title: Portable Conventions
+    details: Directory layout, the Model–View–Action architecture, and naming rules learned once apply to every conformant implementation, in any language.
   - title: AI-First Development
-    details: Deep integration with Claude, OpenAI, and Ollama enables AI-powered code generation and intelligent development assistance.
+    details: A provider-agnostic AI integration contract — Claude, OpenAI, and local models — powers in-app features and the Buddy development assistant.
   - title: Zero-Dependency Cloud
-    details: Deploy with ts-cloud's driver-based IaC—no SDK required. AWS support today, with GCP, Azure, Cloudflare, DigitalOcean, and Hetzner drivers coming soon.
+    details: Driver-based infrastructure-as-code via ts-cloud — no SDK required. AWS support today, with more provider drivers planned.
   - title: End-to-End Type Safety
-    details: Types flow seamlessly from database schemas to API responses to frontend components. The compiler is your documentation.
+    details: An unbroken type contract from data definitions to API responses to views. In Stacks.js, the compiler is your documentation.
 ---
 
-# Stacks.js White Paper
+# Stacks White Paper
 
-**Version 0.70.23 | Closed Beta (January 2026)**
+**Protocol Version 1.0 (Draft) · Reference Implementation `stacks.js` 0.70.45 · Closed Beta (January 2026)**
 
 ## Abstract
 
-Stacks.js is both an **open protocol** and its **reference implementation** for building full-stack TypeScript applications. As a protocol, it defines conventions, interfaces, and specifications that standardize how TypeScript applications handle routing, data modeling, validation, authentication, and more. As a framework, it provides a batteries-included implementation of this protocol, built from the ground up for the Bun runtime.
+**Stacks is an open protocol for building full-stack applications** — a language-agnostic specification of the conventions, interface contracts, and architectural patterns that full-stack applications need: how requests are routed and validated, how data is modeled and persisted, how users are authenticated, how background work runs, and how applications deploy. The protocol defines *what* a conformant framework provides and *how its pieces fit together*, leaving *how* each piece is built to the host language and runtime.
 
-This white paper presents the architectural foundations, design philosophy, and technical capabilities of Stacks.js. We examine how the protocol addresses the fragmentation and complexity inherent in modern JavaScript/TypeScript development by establishing consistent conventions, shared type contracts, and interoperable module specifications comprising 77 specialized packages.
+**Stacks.js is the protocol's first reference implementation**, written in TypeScript and built from the ground up for the Bun runtime. It proves the protocol is buildable, complete, and pleasant to use, comprising 77 specialized packages that implement every contract the protocol defines.
+
+This white paper is organized in three parts: **Part I** specifies the Stacks Protocol in language-agnostic terms; **Part II** describes Stacks.js and how it satisfies each contract; **Part III** defines conformance and guides new implementations in other languages.
 
 ## Executive Summary
 
-Modern web development has become increasingly fragmented. Developers must orchestrate dozens of tools, libraries, and frameworks—each with its own configuration, conventions, and learning curve. The JavaScript ecosystem, while rich, lacks both the cohesive frameworks and the **standardized protocols** that have made platforms like Laravel (PHP) and Ruby on Rails paradigmatically successful.
+Modern application development has become increasingly fragmented. Developers orchestrate dozens of tools, libraries, and frameworks—each with its own configuration and conventions. Opinionated frameworks like Laravel and Rails solved this *within* their languages by replacing configuration with convention, but their conventions are not portable: the knowledge does not travel across language boundaries because there is no specification, only code.
 
-**Stacks.js addresses this gap as both a protocol and framework:**
+**Stacks addresses this at two layers.**
 
-### As a Protocol
+### The Protocol — language-agnostic
 
-Stacks defines open specifications for:
+The Stacks Protocol specifies, independently of any single language:
 
-- **Type Contracts**: Standardized interfaces for models, requests, responses, and services
-- **Convention Patterns**: File structures, naming conventions, and architectural patterns
-- **Module Interfaces**: APIs that allow any compliant implementation to integrate
-- **Validation Schemas**: A fluent, type-safe validation specification
-- **Driver Patterns**: Pluggable backends for databases, caches, queues, and cloud providers
+- **Conventions**: directory layout, naming, and auto-discovery that make applications legible regardless of implementation language.
+- **The Model–View–Action architecture**: a clear separation of data, presentation, and business logic.
+- **Interface contracts**: routing, validation, data modeling, authentication, configuration, queues, real-time, and notifications.
+- **The driver pattern**: a uniform way to swap databases, caches, queues, storage, and cloud providers behind stable interfaces.
+- **A type-contract requirement**: types flow from data definitions to responses and views.
+- **Conformance levels**: Core, Standard, and Complete, so implementations interoperate at the convention level.
 
-### As a Framework
+Because these are specifications rather than code, they can be implemented in any language—conventions learned once travel to every conformant implementation.
 
-The reference implementation provides:
+### The Reference Implementation — Stacks.js
 
-1. **Unified Full-Stack Architecture**: A single framework encompassing frontend UI, backend APIs, database ORM, cloud infrastructure, real-time communication, authentication, payments, and more—all working in concert with shared conventions and types.
+Stacks.js proves the protocol in practice. Built exclusively for **Bun** (`^1.3.0`, macOS/Linux/WSL), it provides a batteries-included framework—frontend UI, backend APIs, a typed ORM, cloud IaC, real-time messaging, passwordless authentication, payments, queues, and an AI-powered CLI—across 77 independently usable packages. Everything is MIT-licensed and built-in: no feature gates, no per-feature subscriptions, no vendor lock-in.
 
-2. **Bun-Native Performance**: Built exclusively for Bun, Stacks leverages the runtime's exceptional speed for both development and production, achieving startup times and request throughput that surpass traditional Node.js frameworks.
+**Why a protocol, not just a framework?** Portability of knowledge (conventions apply everywhere), longevity (a specification outlives any runtime), and plurality (multiple implementations interoperate at the contract level). Stacks.js is the first conformant implementation; the protocol is explicitly designed so that implementations in other languages can satisfy the same contracts, with this white paper as the shared specification.
 
-3. **AI-First Development**: Deep integration with leading AI providers (Anthropic Claude, OpenAI, Ollama) enables AI-powered code generation, natural language codebase modification, and intelligent development assistance through the "Buddy" AI system.
-
-The protocol is structured around 77 focused modules, each with a defined interface that can be implemented independently. This enables developers to adopt Stacks incrementally—using individual packages with any TypeScript project, or the complete framework for new applications.
-
-## Quick Start
+## Quick Start (Reference Implementation)
 
 ```bash
-bunx stacks new my-project
+bunx buddy new my-project
 cd my-project
 buddy dev
 ```

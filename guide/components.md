@@ -5,7 +5,7 @@ description: Built-in UI components available in Stacks.js
 
 # STX Components
 
-Stacks.js includes 43+ production-ready UI components built with STX and styled with Headwind. All components are tree-shakeable, accessible, and support dark mode.
+Stacks.js includes 43+ production-ready UI components built with STX and styled with Crosswind. All components are tree-shakeable, accessible, and support dark mode.
 
 ## Form Input Components
 
@@ -788,10 +788,10 @@ Animation wrapper for enter/leave transitions:
 
 ## Component Theming
 
-All components support theming via Headwind:
+All components support theming via Crosswind:
 
 ```typescript
-// headwind.config.ts
+// crosswind.config.ts
 export default {
   theme: {
     extend: {

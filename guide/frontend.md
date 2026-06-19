@@ -153,9 +153,9 @@ STX features:
 - **SSR Support**: Full server-side rendering with hydration
 - **Compilation**: Templates compile to optimized JavaScript
 
-## Headwind CSS Framework
+## Crosswind CSS Framework
 
-Headwind is a utility-first CSS framework optimized for Stacks:
+Crosswind is a utility-first CSS framework optimized for Stacks:
 
 ```html
 <div class="flex items-center justify-between p-4 bg-white rounded-lg shadow">

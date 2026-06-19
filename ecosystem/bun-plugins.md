@@ -82,18 +82,18 @@ export function UserCard(props: { name: string; verified: boolean }) {
 }
 ```
 
-### bun-plugin-headwind
+### bun-plugin-crosswind
 
-Processes and optimizes Headwind CSS:
+Processes and optimizes Crosswind CSS:
 
 ```typescript
-import { headwindPlugin } from 'bun-plugin-headwind'
+import { crosswindPlugin } from 'bun-plugin-crosswind'
 
 await Bun.build({
   entrypoints: ['./app.ts'],
   plugins: [
-    headwindPlugin({
-      config: './headwind.config.ts',
+    crosswindPlugin({
+      config: './crosswind.config.ts',
       purge: true,
       minify: true,
       sourceMap: false,
@@ -408,7 +408,7 @@ import { composePlugins, withDefaults } from '@stacksjs/bun-plugins'
 
 const stacksPlugins = composePlugins([
   stxPlugin(),
-  headwindPlugin(),
+  crosswindPlugin(),
   dtsPlugin(),
   autoImportsPlugin({
     directories: ['./composables'],

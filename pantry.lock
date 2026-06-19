@@ -1,10 +1,10 @@
 {
   "version": "1.0",
   "packages": {
-    "which@2.0.2": {
-      "name": "which",
-      "version": "2.0.2",
-      "resolved": "registry:which@2.0.2"
+    "@ts-cloud/core@0.2.27": {
+      "name": "@ts-cloud/core",
+      "version": "0.2.27",
+      "resolved": "registry:@ts-cloud/core@0.2.27"
     },
     "strip-ansi@7.2.0": {
       "name": "strip-ansi",
@@ -46,6 +46,11 @@
       "version": "0.3.1",
       "resolved": "registry:ts-jpeg@0.3.1"
     },
+    "lazystream@1.0.1": {
+      "name": "lazystream",
+      "version": "1.0.1",
+      "resolved": "registry:lazystream@1.0.1"
+    },
     "tar-stream@3.2.0": {
       "name": "tar-stream",
       "version": "3.2.0",
@@ -55,11 +60,6 @@
       "name": "graceful-fs",
       "version": "4.2.11",
       "resolved": "registry:graceful-fs@4.2.11"
-    },
-    "lazystream@1.0.1": {
-      "name": "lazystream",
-      "version": "1.0.1",
-      "resolved": "registry:lazystream@1.0.1"
     },
     "lodash@4.18.1": {
       "name": "lodash",
@@ -186,6 +186,11 @@
       "version": "0.2.0",
       "resolved": "registry:eastasianwidth@0.2.0"
     },
+    "wrap-ansi@8.1.0": {
+      "name": "wrap-ansi",
+      "version": "8.1.0",
+      "resolved": "registry:wrap-ansi@8.1.0"
+    },
     "@stacksjs/clarity@0.3.28": {
       "name": "@stacksjs/clarity",
       "version": "0.3.28",
@@ -195,11 +200,6 @@
       "name": "@stacksjs/bunpress",
       "version": "0.1.9",
       "resolved": "registry:@stacksjs/bunpress@0.1.9"
-    },
-    "wrap-ansi@8.1.0": {
-      "name": "wrap-ansi",
-      "version": "8.1.0",
-      "resolved": "registry:wrap-ansi@8.1.0"
     },
     "compress-commons@6.0.2": {
       "name": "compress-commons",
@@ -441,6 +441,11 @@
       "version": "0.2.6",
       "resolved": "registry:@cwcss/crosswind@0.2.6"
     },
+    "which@2.0.2": {
+      "name": "which",
+      "version": "2.0.2",
+      "resolved": "registry:which@2.0.2"
+    },
     "buffer-crc32@1.0.0": {
       "name": "buffer-crc32",
       "version": "1.0.0",
@@ -450,11 +455,6 @@
       "name": "@isaacs/cliui",
       "version": "8.0.2",
       "resolved": "registry:@isaacs/cliui@8.0.2"
-    },
-    "@ts-cloud/core@0.2.27": {
-      "name": "@ts-cloud/core",
-      "version": "0.2.27",
-      "resolved": "registry:@ts-cloud/core@0.2.27"
     }
   }
 }
