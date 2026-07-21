@@ -5,7 +5,10 @@ description: Complete reference of all Stacks.js protocol modules
 
 # Module Reference
 
-The Stacks protocol is implemented through 77 core modules, each published under the `@stacksjs/` npm scope. Every module:
+Stacks.js is split across first-party framework packages under the `@stacksjs/`
+scope. The pinned source manifest inventories 90 versioned package manifests
+across the repository; that count describes packaging scope, not protocol
+conformance or production fitness. Framework packages generally:
 
 - **Exposes a defined interface** — The TypeScript types serve as the specification
 - **Is independently usable** — Use any module in any TypeScript project

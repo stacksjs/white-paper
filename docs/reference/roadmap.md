@@ -1,78 +1,92 @@
 ---
 title: Roadmap & Evidence Gaps
-description: Work needed to ratify the Stacks Protocol and strengthen the pre-1.0 Stacks.js reference implementation.
+description: Completed foundations, governance gates, and remaining evidence work for Protocol 1.0 and Stacks.js.
 ---
 
 # Roadmap & Evidence Gaps
 
-This page describes evidence and stabilization work, not promised dates.
-
-Program tracking: [stacksjs/stacks#2060 — Protocol 1.0 ratification program](https://github.com/stacksjs/stacks/issues/2060)
+This page records evidence and stabilization work, not promised delivery dates.
+Program tracking: [stacksjs/stacks#2060](https://github.com/stacksjs/stacks/issues/2060).
 
 ## Current status
 
-The white paper is a **Protocol 1.0 working draft**. Stacks.js is a **pre-1.0 reference implementation and unverified Complete candidate**.
+The white paper is a governed **Protocol 1.0 working draft**. RFC 0001 is
+accepted; RFCs 0002–0005 are proposed with review ending 20 August 2026. Reference
+implementation code does not bypass that review window.
 
-The source snapshot used by the paper is commit [`ce19440`](https://github.com/stacksjs/stacks/tree/ce19440cd6cbdb2913ff5bd821b10830eeae8e96) from 21 July 2026. Its root manifest reports `0.70.52`; framework workspaces report `0.70.161`.
+Stacks.js is a pre-1.0 reference implementation with **no profile claim**. The
+[generated evidence page](/reference/source-evidence) pins source
+`bf1245e336ab14551e22cb7d88284f93e649a1a2`, evidence commit
+`2a17dd38ffbe9f910273e3777079e7f1ec1623ba`, and RFC commit
+`ea9dbe438aca308085372e68aaa82ebe2e92b8d0`.
 
-Substantial implemented surfaces include routing, Actions, Models, model-derived migrations, validation, authentication, sync/database/Redis queues, scheduling, real-time messaging, API resources, logging, request IDs, health checks, and several AI provider integrations.
+## Completed foundations
 
-Important gaps include configured-but-unimplemented drivers, explicit/stale-able generated artifacts, unverified provider matrices, experimental desktop delivery, a simplified environment-encryption construction, and the absence of a public protocol conformance suite.
+- RFC 0001 publishes maintainers, sponsorship, quorum, voting, conflicts,
+  appeals, security handling, compatibility classes, and review windows.
+- Specification text is CC BY 4.0; fixtures/runner material is MIT-licensed.
+- RFC 0002 proposes 47 stable requirement IDs and Core ← Standard ← Complete
+  inheritance with pass-only claim semantics.
+- RFC 0003 proposes 16 deterministic runner-neutral fixtures and database,
+  queue, cache, storage, mail, realtime, and deployment contracts.
+- RFC 0004 proposes a JSON Schema plus semantic checks for attributable reports.
+- An independent standard-library Python runner consumes the shared suite and
+  reports 15 passes without claiming a profile.
+- Stacks CI pins the RFC revision, rejects suite drift, runs its adapter, validates
+  the report, and retains JSON/Markdown artifacts. Its claim remains `null`.
+- A deterministic source manifest, runtime driver registry, and Craft support
+  matrix now feed this paper through a checksummed evidence lock.
 
-## Protocol ratification work
+## Governance gates
 
-- Assign stable requirement IDs to all normative behavior.
-- Publish language-neutral fixtures and expected outputs.
-- Publish a JSON Schema for conformance reports.
-- Define Core, Standard, Complete, and extension-badge compatibility rules.
-- Establish a public RFC template, decision log, and change process.
-- Publish specification and fixture licenses.
-- Produce at least one complete report from Stacks.js.
-- Seek feedback or a partial implementation from another language/runtime.
+- [#2050](https://github.com/stacksjs/stacks/issues/2050),
+  [#2051](https://github.com/stacksjs/stacks/issues/2051), and
+  [#2052](https://github.com/stacksjs/stacks/issues/2052) stay open until their
+  RFC review/vote records are complete.
+- [RFC 0005](https://github.com/stacksjs/rfcs/issues/6) and
+  [#2061](https://github.com/stacksjs/stacks/issues/2061) block broad production
+  claims for environment encryption.
+- A profile claim requires every inherited requirement to pass; skipped,
+  unsupported, exception, and experimental results never satisfy it.
 
-Tracked work:
+## Reference implementation evidence still needed
 
-- [#2050 — requirement IDs, profiles, and compatibility](https://github.com/stacksjs/stacks/issues/2050)
-- [#2051 — language-neutral fixtures and driver contracts](https://github.com/stacksjs/stacks/issues/2051)
-- [#2052 — report schema and Stacks.js CI report](https://github.com/stacksjs/stacks/issues/2052)
-- [#2053 — RFC governance, change control, and licensing](https://github.com/stacksjs/stacks/issues/2053)
-- [#2054 — independent implementation or runner](https://github.com/stacksjs/stacks/issues/2054)
+- Wire the remaining protocol fixtures to public Stacks APIs and publish
+  per-driver service versions/topologies in retained CI reports.
+- Add deterministic OpenAPI, declaration, and Buddy command-reference freshness
+  checks ([#2056](https://github.com/stacksjs/stacks/issues/2056),
+  [#2032](https://github.com/stacksjs/stacks/issues/2032)).
+- Expand provider-contract matrices without turning missing credentials into
+  false passes ([#2057](https://github.com/stacksjs/stacks/issues/2057)).
+- Complete independent review and disposition for environment envelope v2
+  ([#2058](https://github.com/stacksjs/stacks/issues/2058),
+  [#2061](https://github.com/stacksjs/stacks/issues/2061)).
+- Provision platform signing/notarization and retain native install, launch,
+  update, rollback, and uninstall evidence before any Craft row becomes stable
+  ([#2059](https://github.com/stacksjs/stacks/issues/2059),
+  [#2062](https://github.com/stacksjs/stacks/issues/2062),
+  [#2063](https://github.com/stacksjs/stacks/issues/2063)).
 
-## Reference implementation stabilization
+## Documentation quality still needed
 
-- Align root, workspace, source, and published-package version provenance.
-- Remove unsupported driver names from active configuration or mark them as planned at the type level.
-- Run OpenAPI and generated-declaration freshness checks in CI.
-- Publish tested database, queue, cache, storage, mail, real-time, and cloud matrices.
-- Review environment encryption cryptographically before recommending encrypted secrets in version control.
-- Publish a supported-platform/release matrix for Craft desktop output.
-- Separate unit, integration, provider-contract, end-to-end, deployment, and protocol-conformance results.
-
-Tracked work:
-
-- [#2055 — version provenance and reproducible source snapshots](https://github.com/stacksjs/stacks/issues/2055)
-- [#2056 — generated artifact and documentation freshness](https://github.com/stacksjs/stacks/issues/2056)
-- [#2057 — tested driver/provider matrices and fail-loudly configuration](https://github.com/stacksjs/stacks/issues/2057)
-- [#2058 — environment-encryption cryptographic review](https://github.com/stacksjs/stacks/issues/2058)
-- [#2059 — Craft desktop support and release matrix](https://github.com/stacksjs/stacks/issues/2059)
-
-## Documentation quality
-
-- Tag capability pages with maturity and last-verified source revision.
-- Test commands and snippets against the installed CLI/API.
-- Replace volatile counts with generated values or pinned snapshots.
-- Remove unsupported performance and legal-compliance claims.
-- Distinguish protocol requirements from Stacks.js implementation syntax.
-- Keep provider-specific claims in the provider project’s versioned documentation.
+- Tag remaining capability pages with maturity and last-verified evidence.
+- Test selected commands/snippets and internal links in CI.
+- Keep provider-specific claims tied to exact provider revisions.
+- Keep protocol requirements in the RFC repository and Stacks.js syntax in
+  implementation guides.
+- Continue removing unsupported benchmark and legal-compliance conclusions.
 
 ## Extension work
 
-AI, analytics, desktop, CMS, commerce, search, and internationalization should be specified and reported as independent extension badges. This prevents optional product breadth from delaying baseline protocol stability.
+AI, analytics, desktop, CMS, commerce, search, and internationalization are
+independent extension badges. Craft is currently reported as experimental; the
+other extensions remain unsupported by the Stacks protocol adapter until their
+specific evidence is executed.
 
-## Community and governance
+## Licenses and community
 
-- Source: [github.com/stacksjs/stacks](https://github.com/stacksjs/stacks)
+- Specification: [CC BY 4.0](https://github.com/stacksjs/rfcs/blob/main/LICENSE-SPECIFICATION.md)
+- Fixtures and runner: [MIT](https://github.com/stacksjs/rfcs/blob/main/LICENSE-FIXTURES.md)
+- Stacks.js implementation: [MIT](https://github.com/stacksjs/stacks/blob/main/LICENSE.md)
+- Governance: [RFC 0001](https://github.com/stacksjs/rfcs/blob/main/rfcs/0001-protocol-governance.md)
 - Discussions: [github.com/stacksjs/stacks/discussions](https://github.com/stacksjs/stacks/discussions)
-- Community chat: [discord.gg/stacksjs](https://discord.gg/stacksjs)
-
-The Stacks.js implementation is MIT-licensed. The protocol governance and specification license remain ratification work until published explicitly.

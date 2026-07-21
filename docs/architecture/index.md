@@ -41,7 +41,7 @@ Protocol conformance concerns observable behavior: ordering, short-circuiting, s
 
 ## Stacks.js repository view
 
-At source revision [`ce19440`](https://github.com/stacksjs/stacks/tree/ce19440cd6cbdb2913ff5bd821b10830eeae8e96):
+At source revision [`bf1245e3`](https://github.com/stacksjs/stacks/tree/bf1245e336ab14551e22cb7d88284f93e649a1a2):
 
 ```text
 stacks/
@@ -52,7 +52,7 @@ stacks/
 ├── resources/                            # STX views/components/functions
 ├── tests/                                # application tests
 └── storage/framework/
-    ├── core/                             # 77 @stacksjs/* package manifests
+    ├── core/                             # first-party framework packages
     │   ├── actions/
     │   ├── api/
     │   ├── auth/

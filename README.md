@@ -6,13 +6,15 @@
 
 | Document field | Value |
 |---|---|
-| Status | Working draft; not ratified |
+| Status | Governed working draft; RFCs 0002–0005 remain proposed and not ratified |
 | Revision | 21 July 2026 |
 | Reference implementation | [Stacks.js](https://github.com/stacksjs/stacks) |
-| Audited source revision | [`ce19440cd6cbdb2913ff5bd821b10830eeae8e96`](https://github.com/stacksjs/stacks/tree/ce19440cd6cbdb2913ff5bd821b10830eeae8e96) |
+| Audited source revision | [`bf1245e336ab14551e22cb7d88284f93e649a1a2`](https://github.com/stacksjs/stacks/tree/bf1245e336ab14551e22cb7d88284f93e649a1a2) |
+| Evidence revision | [`2a17dd38ffbe9f910273e3777079e7f1ec1623ba`](https://github.com/stacksjs/stacks/tree/2a17dd38ffbe9f910273e3777079e7f1ec1623ba) · [generated evidence](https://whitepaper.stacksjs.com/reference/source-evidence) |
+| Protocol repository | [`stacksjs/rfcs`](https://github.com/stacksjs/rfcs) at [`ea9dbe4`](https://github.com/stacksjs/rfcs/tree/ea9dbe438aca308085372e68aaa82ebe2e92b8d0) |
 | Snapshot versions | Root manifest `0.70.52`; framework workspaces `0.70.161` |
 | Required toolchain | Bun `^1.3.0`, Git `^2.47.0`, SQLite `^3.47.2` |
-| Implementation license | [MIT](https://github.com/stacksjs/stacks/blob/ce19440cd6cbdb2913ff5bd821b10830eeae8e96/LICENSE.md) |
+| Implementation license | [MIT](https://github.com/stacksjs/stacks/blob/bf1245e336ab14551e22cb7d88284f93e649a1a2/LICENSE.md) |
 
 > [!IMPORTANT]
 > This paper specifies a proposed protocol and documents a pre-1.0 implementation. It is not a certification, security audit, benchmark report, compatibility guarantee, or promise that every configured provider is implemented. Capability status is stated explicitly in Part II.
@@ -25,7 +27,7 @@ Full-stack application development repeatedly solves the same coordination probl
 
 The **Stacks Protocol** is a draft specification for making those conventions explicit and portable. It defines a Model–View–Action architecture, application layout, request lifecycle, capability interfaces, driver boundaries, type-evidence requirements, and a testable conformance model. It deliberately separates normative behavior—what an implementation promises—from implementation choices such as language, runtime, template syntax, database library, and deployment provider.
 
-**Stacks.js** is the first reference implementation. It is a TypeScript framework built for Bun and organized as 77 `@stacksjs/*` workspace packages. The supplied source implements substantial surfaces for routing, actions, models, model-derived migrations, validation, authentication, queues, real-time messaging, notifications, AI providers, observability, and developer tooling. It is also visibly pre-1.0: some documented drivers are not implemented, several capabilities require external services or binaries, generated artifacts are part of the type story, and no independent protocol conformance suite exists yet.
+**Stacks.js** is the first reference implementation. It is a TypeScript framework built for Bun; the generated snapshot inventories 90 versioned package manifests without treating package count as quality evidence. The supplied source implements substantial surfaces for routing, actions, models, model-derived migrations, validation, authentication, queues, real-time messaging, notifications, AI providers, observability, and developer tooling. It is also visibly pre-1.0: several drivers remain partial, experimental, or unsupported, external services and binaries remain prerequisites, and its current schema-valid conformance report makes no profile claim.
 
 This paper therefore does two jobs. Part I defines the proposed protocol. Part II records what the reference source actually contains at a pinned revision, including limitations. Part III defines how conformance should become measurable. Part IV gives adoption and implementation guidance.
 
@@ -555,7 +557,7 @@ Extension claims MUST follow the same tested-driver and limitations rules as cor
 
 ## 6. Audit Method and Status Vocabulary
 
-This part was checked against the local Stacks source supplied with this paper and pinned to commit [`ce19440`](https://github.com/stacksjs/stacks/tree/ce19440cd6cbdb2913ff5bd821b10830eeae8e96). The audit inspected package manifests, application defaults, configuration, capability source, tests, and project-authored implementation guidance.
+This part is pinned to source commit [`bf1245e3`](https://github.com/stacksjs/stacks/tree/bf1245e336ab14551e22cb7d88284f93e649a1a2). Evidence commit [`2a17dd38`](https://github.com/stacksjs/stacks/tree/2a17dd38ffbe9f910273e3777079e7f1ec1623ba) contains the deterministic source manifest, driver registry, Craft matrix, and RFC-suite lock ingested by this paper. See the [generated evidence page](https://whitepaper.stacksjs.com/reference/source-evidence) for hashes, classified counts, and the refresh procedure.
 
 It did not:
 
@@ -620,12 +622,12 @@ The exact counts in the Executive Summary are snapshot facts, not protocol requi
 | Health | **Implemented** | HTTP health Actions and queue-health surfaces exist. External dependency depth varies by configuration. |
 | AI | **Implemented, provider-dependent** | Anthropic, OpenAI, Ollama, Bedrock utilities, streaming, image/vision, in-memory vector search, RAG helpers, and MCP clients exist. Durable vector storage is not provided by the in-memory index. |
 | Analytics | **Partial** | A Fathom configuration/placeholder surface and a self-hosted client-script generator exist. The audited package does not substantiate the paper’s former claims of a complete reporting backend, daily rotating visitor hashes, or consent-law conclusions. |
-| Environment encryption | **Experimental** | Commands and AES-256-GCM value encryption exist. The source explicitly calls its public/private-key construction “simplified” rather than full ECIES; this paper does not treat encrypted-in-repository secrets as independently security-audited. |
+| Environment encryption | **Experimental** | New writes use versioned ephemeral-static X25519, HKDF-SHA-256, and AES-256-GCM with authenticated metadata; legacy ciphertext is read only for migration. RFC 0005 and independent review remain open, so this is not a broad production recommendation. |
 | Application encryption | **Implemented** | `@stacksjs/security` uses versioned AES-GCM ciphertext and PBKDF2-SHA-256 for passphrase-derived keys, with legacy decryption fallback. |
 | Cloud and deployment | **Partial / integration-dependent** | Stacks exposes AWS-oriented cloud helpers and integrates `@stacksjs/ts-cloud`. Provider breadth and topology maturity belong to the ts-cloud version actually installed and are not reasserted here. |
-| Desktop | **Experimental** | Craft launch/build paths exist and are tested at the command-construction level. They require a Craft binary or local checkout; the prior startup/memory/binary-size comparison was unsupported and has been removed. |
+| Desktop | **Experimental** | Craft development/build paths, signed update manifests, artifact checksums/provenance, and a machine-readable support gate exist. The matrix has zero stable targets pending native install/update/rollback evidence and platform signing/notarization. |
 | Native mobile | **Planned / not audited** | No mobile delivery path is established by the audited Stacks source. |
-| Conformance suite | **Planned** | No independent, versioned Stacks Protocol suite or signed conformance report exists at this snapshot. |
+| Conformance suite | **Implemented, unverified** | The RFC repository publishes 47 requirements, 16 runner-neutral fixtures, seven driver contracts, a report schema, and an independent Python runner. Stacks CI emits a schema-valid report; only executable checks pass and `profileClaim` remains `null`. |
 
 ### 7.1 Why the matrix matters
 
@@ -633,7 +635,7 @@ A package manifest proves a package boundary, not a capability guarantee. A conf
 
 ### 7.2 Version interpretation
 
-The source snapshot contains different version numbers in different manifests: the repository root reports `0.70.52`, while framework workspaces report `0.70.161`. This paper therefore identifies the exact commit first and records both numbers. A future release process SHOULD publish one machine-readable source-to-package mapping.
+The source snapshot contains different version numbers in different manifests: the repository root reports `0.70.52`, while framework workspaces report `0.70.161`. The generated source manifest records every package path/version and exact Git tree digest, so this paper identifies source revision and package manifest rather than inventing one repository-wide version.
 
 ---
 
@@ -942,7 +944,7 @@ The audited source includes concrete work in the following areas:
 
 The following limitations materially affect how claims should be interpreted:
 
-- **Environment-file encryption is not independently audited.** The current source says its keypair construction is simplified and not full ECIES. Do not assume that committing encrypted values is safe solely because ciphertext is present.
+- **Environment-file encryption is not independently audited.** Version 2 replaces the simplified construction with X25519, HKDF-SHA-256, and AES-256-GCM, but RFC 0005 and independent review are still open. Ciphertext does not protect a compromised CI job, encryption host, runtime, deployment host, or recipient private key.
 - **In-memory state is process-local.** Session and some callback/cache paths require a shared store or different design for multi-process deployment.
 - **Configured is not implemented.** A queue or cloud provider appearing in a config type is not evidence that its driver works.
 - **Defaults are context-sensitive.** CSRF, CORS, CSP, cookies, proxies, TLS termination, and security headers must be evaluated in the actual deployment topology.
@@ -980,7 +982,7 @@ Before deployment, teams should pin the ts-cloud version and verify:
 
 The desktop package can construct and launch a Craft command, and the desktop build Action creates a launcher bundle around a Craft runtime. It requires `CRAFT_BIN`, a Craft executable on `PATH`, or a recognized local Craft checkout.
 
-This is an experimental delivery integration at the audited revision. The source does not establish universal macOS/Windows/Linux installer coverage, mobile support, or the previous startup/memory/binary-size table. Those claims require a release matrix and reproducible benchmark harness.
+This is an experimental delivery integration. Its generated matrix lists macOS arm64/x64, Linux x64, and Windows x64 as experimental unpackaged bundles and lists zero stable targets. Stable builds fail until the exact row links retained install/launch/update/rollback evidence and enforces signing (plus macOS notarization). Mobile and unlisted targets remain unsupported.
 
 ### 13.4 Testing
 
@@ -993,7 +995,7 @@ Stacks uses Bun’s test runner and provides database, queue-fake, and environme
 - deployment smoke tests;
 - conformance tests.
 
-The protocol suite proposed in Part III is a separate layer and does not yet exist.
+The protocol suite is a separate, public layer in `stacksjs/rfcs`. The current Stacks adapter deliberately reports only executed evidence and makes no profile claim.
 
 ---
 
@@ -1086,32 +1088,37 @@ The final protocol repository SHOULD publish fixtures, expected outputs, and a r
 
 ## 16. Conformance Report Format
 
-A conforming implementation MUST publish a report similar to:
+A conforming implementation MUST publish a report that validates against RFC
+0004's schema and semantic checks. This example is abbreviated; a real report
+contains exactly one result for every catalog requirement:
 
 ```json
 {
-  "protocol": "stacks",
-  "protocolVersion": "1.0-draft",
-  "implementation": "stacks.js",
-  "implementationVersion": "0.70.161",
-  "sourceRevision": "ce19440cd6cbdb2913ff5bd821b10830eeae8e96",
-  "profile": "standard",
-  "runtime": "bun 1.3.x",
-  "platform": "linux-x64",
-  "results": {
-    "CORE-ROUTE-01": "pass",
-    "STD-QUEUE-01": "pass"
+  "reportVersion": "1.0.0-draft.1",
+  "protocol": {
+    "version": "1.0-draft",
+    "catalogRevision": 1,
+    "suiteVersion": "1.0.0-draft.1",
+    "rfcsRevision": "ea9dbe438aca308085372e68aaa82ebe2e92b8d0"
   },
-  "drivers": {
-    "database": ["sqlite"],
-    "queue": ["database", "redis"]
+  "implementation": {
+    "name": "Stacks",
+    "version": "0.70.52",
+    "revision": "bf1245e336ab14551e22cb7d88284f93e649a1a2",
+    "repository": "https://github.com/stacksjs/stacks",
+    "sourceDigest": "sha256:..."
   },
-  "extensions": {
-    "ai": "partial",
-    "desktop": "experimental"
+  "execution": {
+    "runtime": { "name": "bun", "version": "1.3.14" },
+    "platform": { "os": "linux", "architecture": "x64" },
+    "ci": { "provider": "github-actions", "runUrl": "https://...", "artifactUrl": "https://..." }
   },
+  "profileClaim": null,
+  "results": ["one attributable result per requirement"],
+  "drivers": ["one record per evaluated driver"],
+  "extensions": [],
   "exceptions": [],
-  "generatedAt": "2026-07-21T00:00:00Z"
+  "generator": { "name": "@stacksjs/protocol-adapter", "version": "1.0.0-draft.1", "revision": "..." }
 }
 ```
 
@@ -1125,7 +1132,7 @@ Rules:
 
 ### 16.1 Current Stacks.js statement
 
-Stacks.js is the **reference implementation and an unverified Complete candidate**. The source has broad feature coverage, but no protocol conformance suite or report currently supports a formal profile claim. This wording replaces the former unconditional “Stacks.js is Complete” assertion.
+Stacks.js is the **reference implementation with no current profile claim**. Its report is structurally and semantically valid, but `profileClaim` is `null`; skipped, unsupported, partial, and experimental evidence cannot be promoted into Core, Standard, or Complete conformance.
 
 ---
 
@@ -1229,16 +1236,13 @@ This paper does not rank named competitors or repeat unverifiable claims about p
 
 ## 20. Governance and Change Control
 
-Before Protocol 1.0 can be ratified, the project should publish:
+Protocol governance, licensing, requirement catalogs, fixtures, report schema, and an independent runner are now public in [`stacksjs/rfcs`](https://github.com/stacksjs/rfcs). Ratification still requires:
 
-1. a dedicated specification repository or versioned specification directory;
-2. an RFC template and decision log;
-3. a compatibility and deprecation policy;
-4. the conformance fixtures and report schema;
-5. at least one complete report from Stacks.js;
-6. ideally, feedback or a partial implementation from a second language/runtime;
-7. a license for the specification text and test fixtures;
-8. maintainers and an appeals/change process.
+1. completion of the public review/vote window for RFCs 0002–0005;
+2. disposition of review objections and recorded decisions;
+3. a complete passing profile report from Stacks.js or another implementation;
+4. external security review before broad environment-encryption claims;
+5. continued feedback from independent runner/implementation authors.
 
 Protocol changes should use semantic categories:
 
@@ -1247,7 +1251,7 @@ Protocol changes should use semantic categories:
 - **Behavioral** — changed requirement, with migration guidance;
 - **Breaking** — removed/changed contract requiring a protocol-version increment.
 
-No draft statement should imply that an RFC process already governs the project until that process and its records are public.
+RFC 0001 now governs changes. Proposed RFCs do not become accepted merely because reference code exists; their review windows and decision records remain authoritative.
 
 ---
 
@@ -1340,22 +1344,23 @@ The live types and source are authoritative for exact options.
 
 ## Appendix C — Source Evidence Map
 
-Pinned links make the paper auditable even as `main` changes:
+Pinned links make the paper auditable even as `main` changes. The generated
+[source-evidence page](https://whitepaper.stacksjs.com/reference/source-evidence) is the authoritative inventory:
 
-- [Root toolchain and repository manifest](https://github.com/stacksjs/stacks/blob/ce19440cd6cbdb2913ff5bd821b10830eeae8e96/package.json)
-- [Framework core packages](https://github.com/stacksjs/stacks/tree/ce19440cd6cbdb2913ff5bd821b10830eeae8e96/storage/framework/core)
-- [Action implementation](https://github.com/stacksjs/stacks/blob/ce19440cd6cbdb2913ff5bd821b10830eeae8e96/storage/framework/core/actions/src/action.ts)
-- [Router implementation](https://github.com/stacksjs/stacks/blob/ce19440cd6cbdb2913ff5bd821b10830eeae8e96/storage/framework/core/router/src/stacks-router.ts)
-- [Model definition implementation](https://github.com/stacksjs/stacks/blob/ce19440cd6cbdb2913ff5bd821b10830eeae8e96/storage/framework/core/orm/src/define-model.ts)
-- [Migration generator](https://github.com/stacksjs/stacks/blob/ce19440cd6cbdb2913ff5bd821b10830eeae8e96/storage/framework/core/database/src/migrations.ts)
-- [API resources and OpenAPI generator](https://github.com/stacksjs/stacks/tree/ce19440cd6cbdb2913ff5bd821b10830eeae8e96/storage/framework/core/api/src)
-- [Queue execution paths](https://github.com/stacksjs/stacks/blob/ce19440cd6cbdb2913ff5bd821b10830eeae8e96/storage/framework/core/queue/src/action.ts)
-- [Real-time implementation](https://github.com/stacksjs/stacks/tree/ce19440cd6cbdb2913ff5bd821b10830eeae8e96/storage/framework/core/realtime/src)
-- [Authentication implementation](https://github.com/stacksjs/stacks/tree/ce19440cd6cbdb2913ff5bd821b10830eeae8e96/storage/framework/core/auth/src)
-- [Environment encryption implementation](https://github.com/stacksjs/stacks/blob/ce19440cd6cbdb2913ff5bd821b10830eeae8e96/storage/framework/core/env/src/crypto.ts)
-- [Application encryption implementation](https://github.com/stacksjs/stacks/blob/ce19440cd6cbdb2913ff5bd821b10830eeae8e96/storage/framework/core/security/src/crypt.ts)
-- [Analytics implementation](https://github.com/stacksjs/stacks/tree/ce19440cd6cbdb2913ff5bd821b10830eeae8e96/storage/framework/core/analytics/src)
-- [Desktop implementation](https://github.com/stacksjs/stacks/tree/ce19440cd6cbdb2913ff5bd821b10830eeae8e96/storage/framework/core/desktop/src)
+- [Root toolchain and repository manifest](https://github.com/stacksjs/stacks/blob/bf1245e336ab14551e22cb7d88284f93e649a1a2/package.json)
+- [Framework core packages](https://github.com/stacksjs/stacks/tree/bf1245e336ab14551e22cb7d88284f93e649a1a2/storage/framework/core)
+- [Action implementation](https://github.com/stacksjs/stacks/blob/bf1245e336ab14551e22cb7d88284f93e649a1a2/storage/framework/core/actions/src/action.ts)
+- [Router implementation](https://github.com/stacksjs/stacks/blob/bf1245e336ab14551e22cb7d88284f93e649a1a2/storage/framework/core/router/src/stacks-router.ts)
+- [Model definition implementation](https://github.com/stacksjs/stacks/blob/bf1245e336ab14551e22cb7d88284f93e649a1a2/storage/framework/core/orm/src/define-model.ts)
+- [Migration generator](https://github.com/stacksjs/stacks/blob/bf1245e336ab14551e22cb7d88284f93e649a1a2/storage/framework/core/database/src/migrations.ts)
+- [API resources and OpenAPI generator](https://github.com/stacksjs/stacks/tree/bf1245e336ab14551e22cb7d88284f93e649a1a2/storage/framework/core/api/src)
+- [Queue execution paths](https://github.com/stacksjs/stacks/blob/bf1245e336ab14551e22cb7d88284f93e649a1a2/storage/framework/core/queue/src/action.ts)
+- [Real-time implementation](https://github.com/stacksjs/stacks/tree/bf1245e336ab14551e22cb7d88284f93e649a1a2/storage/framework/core/realtime/src)
+- [Authentication implementation](https://github.com/stacksjs/stacks/tree/bf1245e336ab14551e22cb7d88284f93e649a1a2/storage/framework/core/auth/src)
+- [Environment encryption implementation](https://github.com/stacksjs/stacks/blob/bf1245e336ab14551e22cb7d88284f93e649a1a2/storage/framework/core/env/src/crypto.ts)
+- [Application encryption implementation](https://github.com/stacksjs/stacks/blob/bf1245e336ab14551e22cb7d88284f93e649a1a2/storage/framework/core/security/src/crypt.ts)
+- [Analytics implementation](https://github.com/stacksjs/stacks/tree/bf1245e336ab14551e22cb7d88284f93e649a1a2/storage/framework/core/analytics/src)
+- [Desktop implementation](https://github.com/stacksjs/stacks/tree/bf1245e336ab14551e22cb7d88284f93e649a1a2/storage/framework/core/desktop/src)
 
 ---
 
@@ -1397,4 +1402,4 @@ buddy dev
 
 ---
 
-*Protocol 1.0 remains a working draft. APIs and contracts may change before ratification. The implementation statements in this paper apply only to source revision `ce19440cd6cbdb2913ff5bd821b10830eeae8e96`.*
+*Protocol 1.0 remains a governed working draft. APIs and contracts may change through the published RFC process before ratification. The implementation statements in this paper apply only to source revision `bf1245e336ab14551e22cb7d88284f93e649a1a2` and its checksummed evidence set.*

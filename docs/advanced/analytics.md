@@ -5,7 +5,7 @@ description: Audited analytics configuration and self-hosted client-script surfa
 
 # Analytics
 
-> **Maturity: Partial · verified against Stacks source `ce19440`**
+> **Maturity: Partial · verified against Stacks source `bf1245e3`**
 
 The audited `@stacksjs/analytics` package exposes two small surfaces:
 
@@ -111,5 +111,5 @@ Test the generated script with a local collector that records exact payloads. Ve
 - custom events cannot inject unbounded or secret data;
 - tracking failures do not break application behavior.
 
-- [Analytics source at the audited revision](https://github.com/stacksjs/stacks/tree/ce19440cd6cbdb2913ff5bd821b10830eeae8e96/storage/framework/core/analytics/src)
+- [Analytics source at the audited revision](https://github.com/stacksjs/stacks/tree/bf1245e336ab14551e22cb7d88284f93e649a1a2/storage/framework/core/analytics/src)
 - [White paper privacy posture](https://github.com/stacksjs/white-paper#12-security-and-privacy-posture)

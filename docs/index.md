@@ -20,13 +20,13 @@ features:
   - title: Protocol, Clearly Bounded
     details: Part I defines portable conventions, lifecycle guarantees, capability contracts, profiles, and non-goals. Runtime and syntax remain implementation choices.
   - title: Source-Audited
-    details: Implementation statements are pinned to Stacks source revision ce19440 from 21 July 2026, with root and workspace versions recorded separately.
+    details: Implementation statements are generated from a checksummed Stacks evidence set pinned to source bf1245e3 and RFC revision ea9dbe4.
   - title: Honest Maturity
     details: Capabilities are labeled Implemented, Partial, Experimental, Planned, or Not Audited. Configured providers are not assumed to be working drivers.
   - title: Model–View–Action
     details: Models define domain data, Views project prepared data, and transport-independent Actions hold reusable application behavior.
   - title: Testable Conformance
-    details: Core, Standard, and Complete profiles have requirement IDs and minimum evidence. Formal conformance awaits a public suite and report.
+    details: Core, Standard, and Complete have 47 public requirement IDs, runner-neutral fixtures, a report schema, and an independent runner. Stacks currently claims no profile.
   - title: Type Evidence
     details: Stacks.js combines compiler inference, runtime validation, generated declarations, migrations, API artifacts, and contract tests—with dynamic boundaries disclosed.
   - title: Security With Caveats
@@ -41,19 +41,19 @@ features:
 
 Stacks proposes a language-neutral protocol for the recurring coordination work of full-stack applications: routing, validation, Actions, persistence, authentication, background work, rendering, observability, and deployment boundaries.
 
-[Stacks.js](https://github.com/stacksjs/stacks) is the first reference implementation. It is written in TypeScript for Bun and spans 77 `@stacksjs/*` workspace package manifests. The current paper audits the supplied source at commit [`ce19440`](https://github.com/stacksjs/stacks/tree/ce19440cd6cbdb2913ff5bd821b10830eeae8e96), rather than presenting moving package counts and product claims as timeless facts.
+[Stacks.js](https://github.com/stacksjs/stacks) is the first reference implementation. It is written in TypeScript for Bun. The current paper ingests a deterministic manifest at [`bf1245e3`](https://github.com/stacksjs/stacks/tree/bf1245e336ab14551e22cb7d88284f93e649a1a2), which classifies 90 versioned package manifests without presenting count as quality evidence.
 
 ## Read this first
 
-The protocol is a **working draft**, not a ratified standard. Stacks.js is an **unverified Complete candidate**, not a certified implementation: no independent protocol conformance suite or machine-readable report exists yet.
+The protocol is a **governed working draft**, not a ratified standard. The public RFC repository includes a catalog, fixtures, report schema, and independent Python runner. Stacks.js emits a schema-valid report whose `profileClaim` is `null`.
 
 The audit found substantial implemented surfaces for routing, Actions, Models, migrations, validation, auth, queues, real-time messaging, notifications, AI, logging, and health. It also found important boundaries:
 
-- queue execution supports `sync`, database, and Redis; some other configured names are not implemented;
+- queue execution supports `sync`, database, and Redis; known unsupported names fail configuration or dispatch loudly;
 - OpenAPI generation is explicit, so checked-in output can be stale or empty;
 - analytics provides integrations and a client script, not the previously claimed complete reporting system;
-- environment encryption exists, but its source describes the public/private-key construction as simplified rather than full ECIES;
-- Craft desktop launch/build paths require an external Craft binary and remain experimental;
+- environment encryption v2 uses X25519, HKDF-SHA-256, and AES-256-GCM but remains experimental pending RFC and independent review;
+- Craft desktop launch/build paths require an external Craft binary; signed updates and provenance exist, but the support matrix has zero stable targets;
 - native mobile delivery is not established by the audited Stacks source.
 
 The full paper turns those findings into a concrete maturity matrix and a testable conformance design.
@@ -62,7 +62,9 @@ The full paper turns those findings into a concrete maturity matrix and a testab
 
 | Field | Value |
 |---|---|
-| Source revision | [`ce19440cd6cb2913ff5bd821b10830eeae8e96`](https://github.com/stacksjs/stacks/tree/ce19440cd6cbdb2913ff5bd821b10830eeae8e96) |
+| Source revision | [`bf1245e336ab14551e22cb7d88284f93e649a1a2`](https://github.com/stacksjs/stacks/tree/bf1245e336ab14551e22cb7d88284f93e649a1a2) |
+| Evidence | [Checksummed generated page](/reference/source-evidence) |
+| RFC suite | [`ea9dbe438aca308085372e68aaa82ebe2e92b8d0`](https://github.com/stacksjs/rfcs/tree/ea9dbe438aca308085372e68aaa82ebe2e92b8d0) |
 | Root manifest | `0.70.52` |
 | Framework workspaces | `0.70.161` |
 | Runtime | Bun `^1.3.0` |

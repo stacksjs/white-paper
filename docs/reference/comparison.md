@@ -33,7 +33,7 @@ Integration can reduce selection and glue work. It also expands the surface that
 | Integrated full-stack framework | Shared conventions across layers | Larger framework surface and upgrade coupling | Teams that value a paved path |
 | Platform-coupled framework | Excellent path on one host | Portability depends on adapters | Teams aligned with the target platform |
 | Language-neutral specification | Portable behavior and tooling | No application exists without an implementation | Multiple ecosystems needing shared contracts |
-| Stacks proposal | Integrated reference source plus portable draft contracts | Pre-1.0 breadth and no formal conformance suite yet | Bun/TypeScript teams willing to validate selected capabilities |
+| Stacks proposal | Integrated reference source plus portable draft contracts and public conformance artifacts | Pre-1.0 breadth and no passing profile claim yet | Bun/TypeScript teams willing to validate selected capabilities |
 
 ## Distinguishing questions
 
@@ -74,7 +74,7 @@ Instead of counting checkmarks, ask:
 
 ## Stacks.js strengths at the audited revision
 
-Source revision [`ce19440`](https://github.com/stacksjs/stacks/tree/ce19440cd6cbdb2913ff5bd821b10830eeae8e96) demonstrates:
+Source revision [`bf1245e3`](https://github.com/stacksjs/stacks/tree/bf1245e336ab14551e22cb7d88284f93e649a1a2) demonstrates:
 
 - a coherent application layout and override model;
 - Actions with validation, authorization, and hooks;
@@ -88,13 +88,13 @@ Source revision [`ce19440`](https://github.com/stacksjs/stacks/tree/ce19440cd6cb
 
 ## Stacks.js tradeoffs at the audited revision
 
-- Root and workspace versions are not expressed as one source/package version.
-- Some driver names appear in configuration but intentionally fail as unimplemented.
+- Root and workspace versions differ; a generated source/package manifest now records the exact mapping.
+- The runtime registry exposes every audited driver status and rejects known unsupported selections.
 - OpenAPI and declarations include generated artifacts that must be kept fresh.
-- Environment encryption has not received an independent cryptographic audit and uses a source-described simplified key construction.
+- Environment encryption v2 replaces the simplified construction, but RFC ratification and independent cryptographic review remain open.
 - Cloud capability depends partly on the installed ts-cloud version.
-- Craft desktop delivery requires an external binary and lacks a published release/benchmark matrix.
-- No protocol conformance suite currently certifies the Complete profile.
+- Craft desktop delivery requires an external binary; its published matrix has zero stable targets pending platform evidence and signing.
+- The protocol suite and reports are public, but Stacks currently makes no Core, Standard, or Complete claim.
 
 ## About cost and lock-in
 

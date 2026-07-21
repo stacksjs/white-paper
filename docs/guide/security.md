@@ -19,7 +19,7 @@ The audited source includes meaningful controls for requests, authentication, ha
 | Auth tokens and revocation | Implemented | Test expiry, refresh rotation, stores, and multi-process behavior. |
 | Password hashing | Implemented | bcrypt default; Argon2 configurable. |
 | Application encryption | Implemented | AES-GCM with versioned format and legacy fallback. |
-| Environment-file encryption | Experimental | Simplified key construction is not full ECIES or independently audited. |
+| Environment-file encryption | Experimental | Version 2 uses X25519, HKDF-SHA-256, and AES-256-GCM; RFC ratification and independent review remain open. |
 | Production error redaction | Implemented | Verify custom middleware/providers do not reintroduce secrets. |
 | Rate limiting | Implemented in several paths | Store scope and multi-instance behavior must be checked. |
 | Audit/security events | Implemented surface | Persistence and alert routing are application/provider concerns. |
@@ -103,11 +103,25 @@ buddy env:decrypt
 buddy env:rotate
 ```
 
-Encrypted values use an authenticated AES-GCM envelope and `encrypted:`/`enc:` prefixes. Environment-specific private-key variable names are supported, and `.env.keys` is intended to remain uncommitted.
+New writes use `encrypted:v2:<base64url>` with a recipient X25519 key, fresh
+ephemeral X25519 key, 16-byte HKDF salt, 12-byte AES-GCM nonce, and authenticated
+envelope metadata. Wrong keys, modified components, malformed input, and unknown
+versions produce one non-secret failure. New encryption rejects legacy public
+keys; the old unversioned reader exists only so `buddy env:rotate` can decrypt in
+memory and re-encrypt to version 2 without writing plaintext to disk.
 
-> **Security warning:** the audited `env/src/crypto.ts` source says its public/private-key construction is a simplified implementation rather than full ECIES. The committed “public key” participates in deriving the AES key. This mechanism has not been independently reviewed in this task. Do not commit real production secrets on the assumption that this construction provides reviewed asymmetric confidentiality.
+> **Security warning:** this corrects the audited simplified construction, but it
+> is still experimental. [RFC 0005](https://github.com/stacksjs/rfcs/issues/6)
+> and [independent review #2061](https://github.com/stacksjs/stacks/issues/2061)
+> are open. The envelope does not protect a compromised encryption host, CI job,
+> runtime, deployment host, or recipient private key, and it is not a substitute
+> for access control, audit, revocation, or incident response.
 
-Prefer a deployment secret store with restricted access, audit logs, rotation, and incident controls. If environment-file encryption is used, obtain a cryptographic review and test key-loss/rotation behavior first.
+Prefer a deployment secret store with restricted access, audit logs, rotation,
+and incident controls. If the envelope is used, keep `.env.keys` uncommitted,
+separate pairs by environment, retain the prior ciphertext/key generation during
+canary validation, revoke old CI/deployment secrets after success, and restore
+ciphertext plus its matching key together during rollback.
 
 ## Request lifecycle controls
 
@@ -229,6 +243,7 @@ The router error path distinguishes development and production behavior and reda
 - [ ] Logs inspected for personal data and credentials
 - [ ] Incident owner, alerts, and rollback documented
 
-- [Security source at the audited revision](https://github.com/stacksjs/stacks/tree/ce19440cd6cbdb2913ff5bd821b10830eeae8e96/storage/framework/core/security/src)
-- [Auth source at the audited revision](https://github.com/stacksjs/stacks/tree/ce19440cd6cbdb2913ff5bd821b10830eeae8e96/storage/framework/core/auth/src)
-- [Environment encryption source](https://github.com/stacksjs/stacks/blob/ce19440cd6cbdb2913ff5bd821b10830eeae8e96/storage/framework/core/env/src/crypto.ts)
+- [Security source at the audited revision](https://github.com/stacksjs/stacks/tree/bf1245e336ab14551e22cb7d88284f93e649a1a2/storage/framework/core/security/src)
+- [Auth source at the audited revision](https://github.com/stacksjs/stacks/tree/bf1245e336ab14551e22cb7d88284f93e649a1a2/storage/framework/core/auth/src)
+- [Environment encryption source](https://github.com/stacksjs/stacks/blob/bf1245e336ab14551e22cb7d88284f93e649a1a2/storage/framework/core/env/src/crypto.ts)
+- [Environment encryption threat model](https://github.com/stacksjs/stacks/blob/bf1245e336ab14551e22cb7d88284f93e649a1a2/storage/framework/core/env/SECURITY.md)

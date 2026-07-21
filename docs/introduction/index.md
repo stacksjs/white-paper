@@ -59,9 +59,9 @@ An integrated framework can reduce glue work, but each capability must still sta
 
 ## Current status
 
-The paper targets Stacks source commit [`ce19440`](https://github.com/stacksjs/stacks/tree/ce19440cd6cbdb2913ff5bd821b10830eeae8e96) from 21 July 2026. The root manifest reports `0.70.52`, while framework workspaces report `0.70.161`; the commit is therefore the primary source identifier.
+The paper targets Stacks source commit [`bf1245e3`](https://github.com/stacksjs/stacks/tree/bf1245e336ab14551e22cb7d88284f93e649a1a2). The root manifest reports `0.70.52`, while framework workspaces report `0.70.161`; the [generated evidence](/reference/source-evidence) therefore records the exact source digest and every package path/version.
 
-Stacks.js should currently be described as the **reference implementation and an unverified Complete candidate**. Formal conformance awaits a public suite and machine-readable report.
+Stacks.js should currently be described as the **reference implementation with no profile claim**. The public suite and machine-readable report exist, but the report remains unverified until every inherited requirement has passing evidence.
 
 ## Continue
 

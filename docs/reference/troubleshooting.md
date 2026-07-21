@@ -327,7 +327,7 @@ A: No, Stacks is built specifically for Bun and uses Bun-specific features. Whil
 
 **Q: Is Stacks production-ready?**
 
-A: Stacks.js is pre-1.0 and capability-specific. Web/API, database, auth, queue, real-time, provider, cloud, and desktop paths do not share one maturity level. Pin the exact source/package versions, consult the white paper’s maturity matrix, and test the selected drivers and topology under your workload. No formal Stacks Protocol conformance report exists yet.
+A: Stacks.js is pre-1.0 and capability-specific. Web/API, database, auth, queue, real-time, provider, cloud, and desktop paths do not share one maturity level. Pin the exact source/package versions, consult the generated evidence and maturity matrices, and test the selected drivers and topology under your workload. A schema-valid protocol report exists, but its profile claim is `null`.
 
 **Q: How do I update Stacks?**
 

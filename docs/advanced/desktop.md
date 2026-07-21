@@ -5,7 +5,7 @@ description: Experimental Craft desktop launch and bundle paths in the audited S
 
 # Desktop Applications
 
-> **Maturity: Experimental · verified against Stacks source `ce19440`**
+> **Maturity: Experimental · verified against Stacks source `bf1245e3` · stable targets: 0**
 
 Stacks.js includes a Craft-based native-window integration. The audited source can:
 
@@ -14,8 +14,15 @@ Stacks.js includes a Craft-based native-window integration. The audited source c
 - pass window, hot-reload, developer-tools, dark-mode, and system-tray flags;
 - compile a Stacks launcher and bundle it with a Craft runtime;
 - emit a `desktop.json` manifest containing the application URL and window defaults.
+- emit exact source/runtime provenance and per-file SHA-256 checksums;
+- require Ed25519-signed update manifests before checksum-verified staging;
+- refuse a stable release channel unless the target's support row has complete
+  native evidence and enforced signing/notarization.
 
-The source does **not** establish the former cross-platform production matrix, mobile support, installer formats, or startup/memory/binary-size comparisons. Those claims require published release artifacts and a reproducible benchmark harness.
+The machine-readable matrix explicitly lists macOS arm64/x64, Linux x64, and
+Windows x64 as experimental unpackaged bundles. It establishes **no stable OS
+version, installer, or mobile target**. Platform identities and retained native
+install/update/rollback evidence are tracked in Stacks #2062 and #2063.
 
 ## Prerequisites
 
@@ -95,9 +102,11 @@ At the audited revision, the build Action:
 2. compiles `desktop/src/launcher.ts` with Bun;
 3. copies the Craft runtime next to the launcher;
 4. writes `desktop.json`;
-5. places output under `storage/framework/desktop-dist`.
+5. writes `provenance.json` and `checksums.sha256`;
+6. places output under `storage/framework/desktop-dist`.
 
-This is a runtime bundle, not evidence of signed/notarized installers for every operating system.
+This is a runtime bundle, not evidence of a signed/notarized installer. Setting
+`DESKTOP_RELEASE_CHANNEL=stable` fails while the target remains experimental.
 
 ## Production checklist
 
@@ -116,5 +125,6 @@ Before distributing a desktop application:
 
 The Stacks desktop package is useful for local native-window development and experimental Craft bundles. Treat native mobile delivery and universal desktop packaging as planned work until release evidence says otherwise.
 
-- [Desktop source at the audited revision](https://github.com/stacksjs/stacks/tree/ce19440cd6cbdb2913ff5bd821b10830eeae8e96/storage/framework/core/desktop/src)
+- [Desktop source at the audited revision](https://github.com/stacksjs/stacks/tree/bf1245e336ab14551e22cb7d88284f93e649a1a2/storage/framework/core/desktop/src)
+- [Generated support matrix](/reference/source-evidence#craft-desktop-evidence)
 - [White paper maturity matrix](https://github.com/stacksjs/white-paper#7-capability-evidence-and-maturity)

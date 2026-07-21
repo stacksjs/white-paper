@@ -5,7 +5,7 @@ description: Stacks.js cloud/deploy integration boundaries and a verification-fi
 
 # Cloud & Infrastructure
 
-> **Maturity: Partial and integration-dependent · verified against Stacks source `ce19440`**
+> **Maturity: Partial and integration-dependent · verified against Stacks source `bf1245e3`**
 
 Stacks.js includes:
 
@@ -150,6 +150,6 @@ Publish a deployment matrix such as:
 
 Until such a matrix exists, describe the integration as capability-specific rather than broadly production-ready.
 
-- [Stacks cloud source at the audited revision](https://github.com/stacksjs/stacks/tree/ce19440cd6cbdb2913ff5bd821b10830eeae8e96/storage/framework/core/cloud/src)
-- [Stacks deploy source at the audited revision](https://github.com/stacksjs/stacks/tree/ce19440cd6cbdb2913ff5bd821b10830eeae8e96/storage/framework/core/deploy/src)
+- [Stacks cloud source at the audited revision](https://github.com/stacksjs/stacks/tree/bf1245e336ab14551e22cb7d88284f93e649a1a2/storage/framework/core/cloud/src)
+- [Stacks deploy source at the audited revision](https://github.com/stacksjs/stacks/tree/bf1245e336ab14551e22cb7d88284f93e649a1a2/storage/framework/core/deploy/src)
 - [White paper operations guidance](https://github.com/stacksjs/white-paper#13-operations-and-delivery)
