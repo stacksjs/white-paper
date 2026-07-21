@@ -186,6 +186,7 @@ const config: BunPressOptions = {
         {
           text: 'Reference',
           items: [
+            { text: 'Source Evidence', link: '/reference/source-evidence' },
             { text: 'Configuration', link: '/reference/configuration' },
             { text: 'Use Cases', link: '/reference/use-cases' },
             { text: 'Module Reference', link: '/reference/modules' },
