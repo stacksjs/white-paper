@@ -11,10 +11,11 @@
     "dev": "bunpress dev",
     "build": "bunpress build",
     "preview": "bunpress preview",
-    "clean": "bunpress clean"
+    "clean": "bunpress clean",
+    "deploy": "cloud deploy --env production --site whitepaper --yes"
   },
   "devDependencies": {
-    "@stacksjs/bunpress": "^0.1.15"
+    "@stacksjs/bunpress": "^0.1.20"
   },
   "keywords": [
     "stacks",
