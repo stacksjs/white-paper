@@ -204,7 +204,7 @@ const config: BunPressOptions = {
 
   sitemap: {
     enabled: true,
-    baseUrl: 'https://stacksjs.org/white-paper',
+    baseUrl: 'https://whitepaper.stacksjs.dev',
     filename: 'sitemap.xml',
     defaultPriority: 0.5,
     defaultChangefreq: 'monthly',
