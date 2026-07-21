@@ -12,7 +12,8 @@
     "build": "bunpress build",
     "preview": "bunpress preview",
     "clean": "bunpress clean",
-    "deploy": "cloud deploy --env production --site whitepaper --yes"
+    "deploy": "cloud deploy --env production --site whitepaper --yes",
+    "deploy:ci": "cloud deploy --env production --site whitepaper --skip-dns-verification --yes"
   },
   "devDependencies": {
     "@stacksjs/bunpress": "^0.1.20"

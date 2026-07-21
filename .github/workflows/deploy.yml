@@ -1,0 +1,35 @@
+name: Deploy whitepaper
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: whitepaper-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://whitepaper.stacksjs.com
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Pantry
+        uses: home-lang/pantry/packages/action@main
+
+      - name: Build
+        run: bun run build
+
+      - name: Deploy to the Stacks server
+        run: bun run deploy:ci
+        env:
+          HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
+          TS_CLOUD_UI_DISABLE: '1'
