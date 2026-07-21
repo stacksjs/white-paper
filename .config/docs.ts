@@ -187,6 +187,8 @@ const config: BunPressOptions = {
           text: 'Reference',
           items: [
             { text: 'Source Evidence', link: '/reference/source-evidence' },
+            { text: 'Pantry Package Manager', link: '/reference/package-manager' },
+            { text: 'Pantry Registry', link: '/reference/registry' },
             { text: 'Configuration', link: '/reference/configuration' },
             { text: 'Use Cases', link: '/reference/use-cases' },
             { text: 'Module Reference', link: '/reference/modules' },

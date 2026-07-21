@@ -17,6 +17,9 @@ The audited source declares:
 - macOS, Linux, or WSL for the full project workflow.
 
 Stacks recommends [Pantry](https://pantry.dev) to provision the project toolchain.
+The whitepaper pins Pantry's complete [package-manager contract](/reference/package-manager)
+and [registry contract](/reference/registry), including resolution precedence,
+lockfile and integrity behavior, authentication, storage, failure modes, and tests.
 
 ```bash
 curl -fsSL https://pantry.dev | bash

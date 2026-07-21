@@ -40,6 +40,7 @@ jobs:
 
       - name: Verify source evidence and build
         run: |
+          bun test
           bun run evidence:check
           bun run build
 

@@ -1,0 +1,46 @@
+{
+  "pantryRepository": "https://github.com/pantry-pm/pantry",
+  "revision": "a6bdc42071cc659896d1b9ff9d7ab6862c72954d",
+  "tag": "v0.10.36",
+  "version": "0.10.36",
+  "files": {
+    "package-manager.md": {
+      "source": "docs/package-manager.md",
+      "sha256": "sha256:2a655fc1a33aef042340744c69b83afcc15446104f2a4f72ea9e208874c7301f"
+    },
+    "registry.md": {
+      "source": "docs/registry.md",
+      "sha256": "sha256:c16a2ef8855d99b34398bddfd6f574e0e3001ce8a769dc6dd6792af418c4724b"
+    },
+    "scripts__docs-contracts.ts.evidence": {
+      "source": "scripts/docs-contracts.ts",
+      "sha256": "sha256:2d5675a2ad4db64629a275f6d0ad6d414d0e43ccd2dd55345c133298cb195360"
+    },
+    "scripts__docs-contracts.test.ts.evidence": {
+      "source": "scripts/docs-contracts.test.ts",
+      "sha256": "sha256:eae352cbda87ca457d0edc4aecdf41d48a62492e30a3bd976dc233cef947f091"
+    },
+    "packages__registry__src__zig-routes.ts.evidence": {
+      "source": "packages/registry/src/zig-routes.ts",
+      "sha256": "sha256:46605e0e3e8f9c3c828320775eeda74ba3e48c0c5ecb6c69cdfd73b235cc8000"
+    },
+    "packages__registry__src__zig-routes.test.ts.evidence": {
+      "source": "packages/registry/src/zig-routes.test.ts",
+      "sha256": "sha256:039896e931b5f388ed95e71b96594c86924a88e599d44e56390fb08c182301de"
+    },
+    "packages__zig__src__install__pipeline.zig.evidence": {
+      "source": "packages/zig/src/install/pipeline.zig",
+      "sha256": "sha256:523e5da9ecd991d1a4a0e8276cda180cb615413a29be7a4f906658b42226a8bb"
+    },
+    ".github__workflows__ci.yml.evidence": {
+      "source": ".github/workflows/ci.yml",
+      "sha256": "sha256:a0c39c50c8f92fa81683a83ecf63f1fe7a7870af30e4316c7974d9e72676e72c"
+    }
+  },
+  "verification": {
+    "documentationContracts": "bun run docs:contracts:check (48 source-linked markers)",
+    "targetedBunTests": "11 passed, 0 failed",
+    "typecheck": "bun run typecheck",
+    "zigTests": "zig build test"
+  }
+}

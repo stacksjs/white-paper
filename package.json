@@ -12,8 +12,10 @@
     "build": "bunpress build",
     "preview": "bunpress preview",
     "clean": "bunpress clean",
-    "evidence:sync": "bun scripts/sync-stacks-evidence.ts --write",
-    "evidence:check": "bun scripts/sync-stacks-evidence.ts --check",
+    "evidence:sync": "bun scripts/sync-stacks-evidence.ts --write && bun scripts/sync-pantry-evidence.ts --write",
+    "evidence:check": "bun scripts/sync-stacks-evidence.ts --check && bun scripts/sync-pantry-evidence.ts --check",
+    "evidence:sync:pantry": "bun scripts/sync-pantry-evidence.ts --write",
+    "evidence:check:pantry": "bun scripts/sync-pantry-evidence.ts --check",
     "deploy:workflow": "cloud quick-deploy --env production --site whitepaper --skip-dns-verification --force",
     "deploy": "cloud deploy --env production --site whitepaper --yes",
     "deploy:ci": "cloud deploy --env production --site whitepaper --skip-dns-verification --yes"

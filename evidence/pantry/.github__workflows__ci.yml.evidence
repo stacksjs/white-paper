@@ -1,0 +1,150 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+# Default to least-privilege GITHUB_TOKEN; jobs that need more elevate explicitly.
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Pantry
+        uses: ./packages/action
+
+      - name: Install Dependencies
+        run: bun install
+
+      - name: Lint TypeScript/JavaScript
+        run: bun run lint
+
+      - name: Check package-manager and registry documentation contracts
+        run: bun run docs:contracts:check
+
+      - name: Format Check Zig Code
+        run: |
+          if command -v zig &>/dev/null; then
+            find packages/zig/src -name "*.zig" -not -name "generated.zig" -type f -exec zig fmt --check {} +
+          else
+            echo "Zig not available — skipping format check"
+          fi
+
+  typecheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Pantry
+        uses: ./packages/action
+
+      - name: Install Dependencies
+        run: bun install
+
+      - name: Typecheck
+        run: bun run typecheck
+
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Pantry
+        uses: ./packages/action
+
+      - name: Install Dependencies
+        run: bun install
+
+      - name: Build TypeScript packages
+        run: bun run build
+
+      - name: Build pantry GitHub Action
+        run: cd packages/action && bun run build
+
+      - name: Unit Test
+        run: bun test
+
+      - name: Zig Tests
+        run: |
+          command -v zig >/dev/null
+          cd packages/zig
+          zig build test
+
+  continuous-release:
+    needs: [lint, typecheck, test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Best-effort commit-preview publishing. Don't fail the whole workflow
+    # if the registry/S3 is unreachable or secrets are missing — the main
+    # pipeline (typecheck/lint/test) is what gates mergeability.
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Pantry
+        uses: ./packages/action
+
+      - name: Install Dependencies
+        run: bun install
+
+      - name: Build TypeScript packages
+        run: bun run build
+
+      - name: Continuous Releases
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
+          PANTRY_REGISTRY_TOKEN: ${{ secrets.PANTRY_TOKEN }}
+          PANTRY_TOKEN: ${{ secrets.PANTRY_TOKEN }}
+        run: |
+          # Revert any accidental changes to bun.lock from `bun install` during setup
+          if [ -f bun.lock ] && ! git diff --quiet bun.lock; then
+            git checkout -- bun.lock
+          fi
+          pantry publish:commit './packages/*'
+
+  notify:
+    name: discord-failure-alert
+    needs: [lint, typecheck, test, continuous-release]
+    # continuous-release is best-effort; only alert on gating job failures.
+    if: always() && (needs.lint.result == 'failure' || needs.typecheck.result == 'failure' || needs.test.result == 'failure')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/discord-notify
+        with:
+          title: "CI — Failed"
+          description: "CI pipeline failure on ${{ github.ref_name }}"
+          status: failure
+          fields: |
+            [
+              {"name": "Lint", "value": "${{ needs.lint.result }}", "inline": true},
+              {"name": "Typecheck", "value": "${{ needs.typecheck.result }}", "inline": true},
+              {"name": "Test", "value": "${{ needs.test.result }}", "inline": true},
+              {"name": "Release", "value": "${{ needs.continuous-release.result }}", "inline": true},
+              {"name": "Branch", "value": "${{ github.ref_name }}", "inline": true},
+              {"name": "Author", "value": "${{ github.actor }}", "inline": true}
+            ]
+          webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }}
