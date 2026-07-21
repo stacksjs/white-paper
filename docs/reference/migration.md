@@ -644,10 +644,11 @@ router.group({ middleware: ['auth'] }, () => {
 
 ```bash
 # Create new Stacks project
-bunx stacks create my-app
+panx @stacksjs/buddy new my-app
 
-# Install dependencies
-cd my-app && bun install
+# Enter the Pantry-provisioned project
+cd my-app
+pantry install
 
 # Configure environment
 cp .env.example .env

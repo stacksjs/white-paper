@@ -314,9 +314,11 @@ curl https://your-app.com/health
 
 **Q: What version of Bun is required?**
 
-A: Stacks requires Bun 1.0 or later. We recommend always using the latest stable version:
+A: The audited Stacks source declares Bun `^1.3.0`, Git `^2.47.0`, and SQLite `^3.47.2`. Use the project-pinned toolchain rather than upgrading Bun independently. With Pantry-managed projects:
+
 ```bash
-bun upgrade
+pantry install
+buddy doctor
 ```
 
 **Q: Can I use npm or yarn instead of Bun?**
@@ -325,14 +327,17 @@ A: No, Stacks is built specifically for Bun and uses Bun-specific features. Whil
 
 **Q: Is Stacks production-ready?**
 
-A: Stacks is in Closed Beta (January 2026). It's suitable for production use with the understanding that APIs may change. We recommend pinning versions in production.
+A: Stacks.js is pre-1.0 and capability-specific. Web/API, database, auth, queue, real-time, provider, cloud, and desktop paths do not share one maturity level. Pin the exact source/package versions, consult the white paper’s maturity matrix, and test the selected drivers and topology under your workload. No formal Stacks Protocol conformance report exists yet.
 
 **Q: How do I update Stacks?**
 
-A:
+A: Review the installed command help and upgrade guide before changing a 0.x version:
+
 ```bash
-bun update @stacksjs/stacks
-buddy upgrade  # Runs any necessary migrations/updates
+buddy upgrade --help
+buddy doctor
+buddy test
+buddy test:types
 ```
 
 ### Architecture
@@ -347,9 +352,12 @@ A: GraphQL support is planned for a future release. Currently, Stacks focuses on
 
 **Q: Can I use Stacks for just the backend?**
 
-A: Yes! You can use Stacks as an API-only backend. Simply don't create any STX views:
+A: Yes. Stacks can run an API without application STX views. Create a normal project with the current recommended command, then configure only the services your API needs:
+
 ```bash
-bunx stacks new my-api --api-only
+panx @stacksjs/buddy new my-api
+cd my-api
+buddy dev api
 ```
 
 **Q: How do I add a custom database driver?**
@@ -375,7 +383,7 @@ connections: {
 
 **Q: How does Stacks compare to Express/Fastify?**
 
-A: Stacks on Bun typically achieves 3-10x higher throughput than Express on Node.js. For simple JSON responses, expect ~100k requests/second.
+A: There is no framework-wide multiplier that applies across workloads. Compare pinned production builds with equivalent routing, validation, serialization, database work, payloads, hardware, concurrency, and error accounting. Publish the load script and raw results; see the performance methodology page.
 
 **Q: How do I enable caching?**
 

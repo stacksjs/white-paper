@@ -7,7 +7,7 @@ description: RESTful patterns, API versioning, pagination, rate limiting, and AP
 
 Stacks.js provides tools and conventions for building well-designed, consistent, and developer-friendly APIs. This guide covers RESTful patterns, versioning, pagination, rate limiting, and API documentation.
 
-> **Protocol context** — This guide covers the **Stacks.js reference implementation**. The behavior it relies on is specified by **the API contract** in the [Stacks Protocol white paper](/) (§6.9), so these concepts transfer to any conformant implementation — the specific APIs shown here are TypeScript/Bun.
+> **Protocol context** — This guide covers Stacks.js API resources and routing in relation to the draft [API representation contract](https://github.com/stacksjs/white-paper#48-api-representation). The APIs here are implementation-specific.
 
 ## RESTful Conventions
 

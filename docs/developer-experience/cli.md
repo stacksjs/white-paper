@@ -343,12 +343,10 @@ pantry bootstrap                   # Initial system setup
 When creating a new Stacks project, dependencies are automatically configured:
 
 ```bash
-bunx stacks new my-project
+panx @stacksjs/buddy new my-project
 cd my-project
-# ✓ Environment automatically activated
-# ✓ All dependencies ready
-
-buddy dev  # Start developing immediately
+buddy doctor
+buddy dev
 ```
 
-Pantry coexists peacefully with Homebrew—it uses `/usr/local` and never touches `/opt/homebrew`, so your existing setup remains intact.
+Use the Pantry and Stacks versions pinned by the project. Installation paths and package-manager coexistence are platform details; inspect `pantry doctor` rather than assuming a fixed prefix.

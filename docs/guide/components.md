@@ -5,9 +5,9 @@ description: Built-in UI components available in Stacks.js
 
 # STX Components
 
-Stacks.js includes 43+ production-ready UI components built with STX and styled with Crosswind. All components are tree-shakeable, accessible, and support dark mode.
+Stacks.js includes a broad component set built with STX and styled with Crosswind. Treat component count, tree-shaking, accessibility, and dark-mode behavior as version-specific properties to verify against the selected package and application build.
 
-> **Protocol context** — This guide covers the **Stacks.js reference implementation**. The behavior it relies on is specified by **the View component model** in the [Stacks Protocol white paper](/) (§9.1), so these concepts transfer to any conformant implementation — the specific APIs shown here are TypeScript/Bun.
+> **Protocol context** — This guide covers the Stacks.js View implementation. The draft [Model–View–Action architecture](https://github.com/stacksjs/white-paper#21-modelviewaction) defines portable responsibilities; STX and Crosswind remain TypeScript/Bun-specific choices.
 
 ## Form Input Components
 

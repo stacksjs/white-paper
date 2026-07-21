@@ -7,7 +7,7 @@ description: Background processing, workers, job retries, and failed job handlin
 
 Stacks.js Queue provides a robust background job processing system powered by bun-queue (Redis-backed), optimized for Bun's performance.
 
-> **Protocol context** — This guide covers the **Stacks.js reference implementation**. The behavior it relies on is specified by **the Queues & Scheduling contract** in the [Stacks Protocol white paper](/) (§7.1), so these concepts transfer to any conformant implementation — the specific APIs shown here are TypeScript/Bun.
+> **Protocol context** — This guide covers Stacks.js in relation to the draft [Queues and scheduling contract](https://github.com/stacksjs/white-paper#51-queues-and-scheduling). At the audited revision, only sync, database, and Redis execution paths are implemented.
 
 ## Overview
 

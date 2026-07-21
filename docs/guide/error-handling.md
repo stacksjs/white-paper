@@ -7,7 +7,7 @@ description: Exception handling, error pages, error logging, and error reporting
 
 Stacks.js provides a comprehensive error handling system that catches exceptions, renders appropriate error responses, logs errors, and optionally reports to external services like Sentry.
 
-> **Protocol context** — This guide covers the **Stacks.js reference implementation**. The behavior it relies on is specified by **Actions & the request lifecycle** in the [Stacks Protocol white paper](/) (§3, §6.2), so these concepts transfer to any conformant implementation — the specific APIs shown here are TypeScript/Bun.
+> **Protocol context** — This guide covers Stacks.js error behavior in relation to the draft [Errors as contract data](https://github.com/stacksjs/white-paper#24-errors-as-contract-data) and [Request lifecycle](https://github.com/stacksjs/white-paper#42-request-lifecycle) sections.
 
 ## Configuration
 

@@ -10,16 +10,18 @@ export default {
     attachTo: 'stacks',
   },
 
+  mode: 'server',
+
   environments: {
     production: {
       type: 'production',
+      deployBranch: 'main',
       domain: 'whitepaper.stacksjs.com',
     },
   },
 
   infrastructure: {
     compute: {
-      mode: 'server',
       runtime: 'bun',
       proxy: {
         engine: 'rpx',

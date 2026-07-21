@@ -1,178 +1,191 @@
 ---
 title: Technical Architecture
-description: Understanding the Stacks.js protocol specifications and module system
+description: Source-audited architecture of the Stacks.js reference implementation and its relationship to the draft protocol.
 ---
 
 # Technical Architecture
 
-Stacks' architecture reflects its dual nature as both a protocol and framework. The protocol defines interfaces and specifications; the monorepo provides the reference implementation.
+Stacks has two architectural views:
 
-## Protocol Specifications
+1. the draft protocol’s portable roles and lifecycle;
+2. the Stacks.js packages and runtime mechanisms that implement them.
 
-The Stacks protocol defines standardized interfaces at multiple layers:
+The distinction matters. `@stacksjs/router` is an implementation detail; “route matching occurs before validation and Action execution” is a protocol guarantee.
 
-### Type Contracts
+## Protocol view
 
-Every module exposes TypeScript interfaces that serve as specifications:
-
-```typescript
-// Model contract example
-interface StacksModel {
-  fields: Record<string, FieldDefinition>
-  relationships?: Record<string, RelationshipDefinition>
-  scopes?: Record<string, ScopeFunction>
-  hooks?: ModelHooks
-}
-
-// Driver contract example
-interface CacheDriver {
-  get<T>(key: string): Promise<T | null>
-  set<T>(key: string, value: T, ttl?: number): Promise<void>
-  delete(key: string): Promise<boolean>
-  flush(): Promise<void>
-}
+```text
+Transport
+  │
+  ▼
+Request context → middleware → route → validation → authorization
+                                                   │
+                                                   ▼
+                                                Action
+                                                   │
+                                     ┌─────────────┴─────────────┐
+                                     ▼                           ▼
+                                   Model                       Service
+                                     │                           │
+                                     └─────────────┬─────────────┘
+                                                   ▼
+                                              result / error
+                                                   │
+                                      serializer or rendered View
+                                                   │
+                                                   ▼
+                                                Response
 ```
 
-Alternative implementations can conform to these interfaces, enabling:
-- Custom database drivers
-- Alternative cache backends
-- Third-party authentication providers
-- Custom queue implementations
+Protocol conformance concerns observable behavior: ordering, short-circuiting, stable errors, transactions, driver failure, and type/schema evidence.
 
-### Convention Specifications
+## Stacks.js repository view
 
-The protocol documents file structures and naming conventions:
+At source revision [`ce19440`](https://github.com/stacksjs/stacks/tree/ce19440cd6cbdb2913ff5bd821b10830eeae8e96):
 
-| Convention | Specification |
-|-----------|---------------|
-| Models | `app/Models/{Name}.ts` - PascalCase, singular |
-| Controllers | `app/Controllers/{Name}Controller.ts` |
-| Migrations | `database/migrations/{timestamp}_{name}.ts` |
-| Components | `resources/components/{Name}.stx` |
-| Routes | `routes/{web,api}.ts` |
-
-These conventions enable auto-discovery, code generation, and consistent tooling.
-
-## Monorepo Structure
-
-The reference implementation is organized as a monorepo using Bun workspaces. This structure enables:
-
-- **Shared Types**: Type definitions are centralized and imported across packages
-- **Coordinated Versions**: All packages release together with synchronized versions
-- **Development Efficiency**: Changes propagate instantly across the codebase
-- **Selective Publishing**: Each package is independently publishable to npm
-- **Protocol Compliance**: All modules implement the defined specifications
-
-```
+```text
 stacks/
-├── storage/framework/
-│   ├── core/                    # 77 framework modules
-│   │   ├── router/
-│   │   ├── database/
-│   │   ├── orm/
-│   │   ├── auth/
-│   │   ├── ai/
-│   │   ├── buddy/               # CLI
-│   │   ├── types/               # 87+ type definition files
-│   │   └── ... (85+ more)
-│   ├── api/                     # API server
-│   ├── server/                  # Development server
-│   ├── cloud/                   # ts-cloud integration
-│   ├── orm/                     # ORM layer
-│   └── ts-auth/                 # Authentication library
-├── app/                         # Application code
-├── config/                      # Configuration files
-├── database/                    # Migrations & seeders
-├── resources/                   # Frontend resources
-├── routes/                      # Route definitions
-└── tests/                       # Test suite
+├── app/                                  # user-owned overrides and additions
+├── routes/                               # route definitions
+├── config/                               # typed capability settings
+├── database/                             # migrations and local databases
+├── resources/                            # STX views/components/functions
+├── tests/                                # application tests
+└── storage/framework/
+    ├── core/                             # 77 @stacksjs/* package manifests
+    │   ├── actions/
+    │   ├── api/
+    │   ├── auth/
+    │   ├── database/
+    │   ├── orm/
+    │   ├── queue/
+    │   ├── realtime/
+    │   ├── router/
+    │   ├── security/
+    │   ├── validation/
+    │   └── ...
+    ├── defaults/app/                    # framework fallback application
+    ├── types/                           # generated and ambient declarations
+    ├── api/                             # API server/generated API artifacts
+    ├── server/                          # server package
+    └── cloud/                           # cloud integration
 ```
 
-## Module System (77 Packages)
+## Resolution and overrides
 
-The protocol is implemented through 77 specialized modules, each published independently under the `@stacksjs/` npm scope. Every module:
+Stacks.js resolves application code before bundled defaults:
 
-- Exposes a defined TypeScript interface (the specification)
-- Provides a reference implementation
-- Can be used independently or as part of the full stack
-- Accepts alternative implementations through driver patterns
+```text
+app/Actions/Cms/PostIndexAction.ts
+        │ exists? yes ──► use it
+        │ no
+        ▼
+storage/framework/defaults/app/Actions/Cms/PostIndexAction.ts
+```
 
-Modules are categorized by domain:
+This pattern applies to logical paths supported by the relevant resolver. It permits local customization without forking framework storage.
 
-### Frontend Modules
+Route files are different: `routes/*.ts` files are registered through `app/Routes.ts`. Creating a route file without registering it is not sufficient.
 
-| Module | Purpose |
-|--------|---------|
-| `ui` | Core UI engine and component rendering |
-| `components` | STX & Web Component abstractions |
-| `validation` | Client-side validation (mirrors server) |
-| `strings` | String manipulation utilities |
-| `arrays` | Array utilities with chainable API |
-| `objects` | Object manipulation helpers |
-| `datetime` | Date/time formatting and parsing |
-| `collections` | Laravel-style collection operations |
+## Request path
 
-### Backend Modules
+The router builds on Bun HTTP primitives and the underlying Bun router package. Stacks-specific layers add:
 
-| Module | Purpose |
-|--------|---------|
-| `router` | HTTP routing (extends bun-router) |
-| `server` | HTTP server with middleware |
-| `api` | API client and server utilities |
-| `actions` | Business logic pattern |
-| `validation` | Request validation |
-| `error-handling` | Type-safe error management |
+- route-file loading and prefixes;
+- Action/controller resolution;
+- request augmentation and AsyncLocalStorage context;
+- middleware aliases and parameters;
+- CSRF handling;
+- request IDs and `Server-Timing` data;
+- response helpers;
+- development/production error behavior;
+- named URL generation.
 
-### Database Modules
+The lifecycle can terminate before the Action when middleware, validation, authorization, or CSRF checks return an error response.
 
-| Module | Purpose |
-|--------|---------|
-| `database` | Database connections and drivers |
-| `orm` | Object-relational mapping |
-| `query-builder` | Type-safe SQL construction |
+## Action path
 
-### Service Modules
+An `Action` declares metadata and `handle()`, and may declare:
 
-| Module | Purpose |
-|--------|---------|
-| `auth` | Authentication & authorization |
-| `cache` | Multi-backend caching |
-| `queue` | Background job processing |
-| `scheduler` | Cron job scheduling |
-| `email` | Email sending |
-| `notifications` | Multi-channel notifications |
-| `payments` | Stripe integration |
-| `storage` | File storage (S3-compatible) |
-| `realtime` | WebSocket support |
+- `validations`;
+- `authorize`;
+- `before` and `after` hooks;
+- HTTP method/path metadata;
+- rate/retry/backoff metadata for relevant execution paths;
+- a Model association for request inference.
 
-### Infrastructure Modules
+String-based route handlers are resolved lazily. This improves override flexibility but means some import errors surface only when a route is exercised. Route smoke tests are therefore important.
 
-| Module | Purpose |
-|--------|---------|
-| `cloud` | ts-cloud integration (zero-dependency IaC) |
-| `deploy` | Deployment automation |
-| `dns` | Domain management |
-| `security` | Security utilities |
-| `health` | Health checks |
-| `tunnel` | Development tunneling |
+## Model and migration path
 
-### AI Modules
+`defineModel()` combines a literal definition with the query-builder runtime. A Model can declare:
 
-| Module | Purpose |
-|--------|---------|
-| `ai` | Multi-provider AI client |
-| `buddy` | AI assistant for development |
-| `chat` | Chat interfaces |
+- attributes and validation rules;
+- relationships;
+- indexes;
+- factories;
+- timestamps, UUIDs, API generation, search, events, and domain traits;
+- accessors, mutators, and hooks.
 
-### Development Modules
+Migration generation compares Model state with a dialect-specific snapshot and writes migration artifacts under `database/migrations/`. A safe workflow is:
 
-| Module | Purpose |
-|--------|---------|
-| `buddy` | CLI toolkit |
-| `cli` | CLI creation utilities |
-| `build` | Build system |
-| `lint` | Code quality tools |
-| `testing` | Test utilities |
-| `git` | Git integration |
-| `docs` | Documentation generation |
-| `desktop` | Desktop app support |
+```text
+edit Model → generate migrations → inspect diff/SQL → apply → run tests
+```
+
+Model-driven generation reduces duplicated schema declarations but does not eliminate migration review.
+
+## Type and schema path
+
+Stacks.js uses multiple mechanisms:
+
+| Boundary | Primary evidence |
+|---|---|
+| Model literal → runtime Model | generic/literal inference in `defineModel()` |
+| Action validation → request body | `InferValidations` plus runtime validation |
+| Model/config/component inventories | generated declarations and manifests |
+| Routes → API description | explicit OpenAPI generation |
+| External input | runtime schema and parser checks |
+| Database implementation edges | typed query builder plus selected dynamic casts |
+
+Generated declarations and OpenAPI output can become stale, so CI should regenerate or verify them.
+
+## Service packages
+
+Selected capability boundaries:
+
+| Capability | Main packages | Snapshot boundary |
+|---|---|---|
+| Routing/API | `router`, `api`, `server`, `actions` | Implemented; OpenAPI generation is explicit. |
+| Data | `database`, `orm`, `query-builder` | Implemented; test each selected dialect. |
+| Auth | `auth`, `security` | Broad surface; shared-store assumptions matter. |
+| Queue | `queue`, `scheduler`, `cron` | Sync/database/Redis execute; other configured names may not. |
+| Real-time | `realtime` | Server must be initialized; scale-out is configuration-dependent. |
+| Notifications | `notifications`, `email`, `sms`, `push`, `chat` | Database is concrete; provider delivery requires provider setup. |
+| AI | `ai` | Provider-dependent; the built-in vector index is in-memory. |
+| Observability | `logging`, `health` | Request/trace IDs and health surfaces exist. |
+| Cloud | `cloud`, `deploy`, `dns` | AWS-oriented integration plus ts-cloud dependency. |
+| Desktop | `desktop` | Craft launch/build integration is experimental. |
+
+## Runtime and process boundaries
+
+The full framework targets Bun. Process-local mechanisms—including in-memory sessions, callbacks, registries, or caches—do not automatically coordinate across workers or hosts. When scaling horizontally, select shared stores and verify:
+
+- session and token behavior;
+- queue locks and retries;
+- real-time fan-out;
+- rate-limit state;
+- idempotency;
+- scheduler overlap prevention;
+- trace propagation.
+
+## Architecture guarantees versus aspirations
+
+The source demonstrates broad capability coverage. It does not yet provide a language-neutral conformance suite, provider matrix, or certification report. Treat the repository as the reference design and the [white paper requirements](https://github.com/stacksjs/white-paper#15-normative-requirement-ids) as the proposed path from design to verifiable protocol.
+
+## Continue
+
+- [Request lifecycle](/architecture/request-lifecycle)
+- [Architecture internals](/architecture/internals)
+- [Performance](/architecture/performance)
+- [Full source-audit matrix](https://github.com/stacksjs/white-paper#7-capability-evidence-and-maturity)

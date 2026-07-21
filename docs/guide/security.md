@@ -1,794 +1,234 @@
 ---
 title: Security
-description: CSRF protection, XSS prevention, rate limiting, encryption, and security headers in Stacks.js
+description: Source-audited Stacks.js security controls, limitations, and verification guidance.
 ---
 
 # Security
 
-Stacks.js provides comprehensive security features out of the box, including encrypted secrets, CSRF protection, XSS prevention, rate limiting, encryption, and secure headers. This guide covers security best practices and configuration.
+> **Protocol context** — This guide covers Stacks.js security surfaces in relation to the draft [Security baseline](https://github.com/stacksjs/white-paper#56-security-baseline). Framework features do not replace a deployment-specific threat model, application review, or independent security testing.
 
-> **Protocol context** — This guide covers the **Stacks.js reference implementation**. The behavior it relies on is specified by **Security & Secret Management** in the [Stacks Protocol white paper](/) (§7.8), so these concepts transfer to any conformant implementation — the specific APIs shown here are TypeScript/Bun.
+The audited source includes meaningful controls for requests, authentication, hashing, application encryption, errors, and deployment diagnostics. Their effectiveness depends on configuration and topology.
 
-## Encrypted Environment Variables
+## Maturity summary
 
-Stacks ships a **dotenvx-inspired encrypted `.env`** (via `@stacksjs/env`). Secrets are encrypted *in place* in the `.env` file you commit, and only a private key — kept out of the repository — can decrypt them at runtime. You version your entire configuration without ever exposing a secret.
+| Area | Snapshot status | Boundary |
+|---|---|---|
+| Parameterized queries | Implemented default path | Raw SQL still requires review. |
+| CSRF | Implemented in router lifecycle | Verify browser/session topology and exemptions. |
+| Security headers | Implemented/configurable | CSP and proxy/TLS behavior require deployment checks. |
+| Auth tokens and revocation | Implemented | Test expiry, refresh rotation, stores, and multi-process behavior. |
+| Password hashing | Implemented | bcrypt default; Argon2 configurable. |
+| Application encryption | Implemented | AES-GCM with versioned format and legacy fallback. |
+| Environment-file encryption | Experimental | Simplified key construction is not full ECIES or independently audited. |
+| Production error redaction | Implemented | Verify custom middleware/providers do not reintroduce secrets. |
+| Rate limiting | Implemented in several paths | Store scope and multi-instance behavior must be checked. |
+| Audit/security events | Implemented surface | Persistence and alert routing are application/provider concerns. |
 
-**How it works:**
+## Threat model first
 
-- A committed **`DOTENV_PUBLIC_KEY`** encrypts values. Encrypted values are written with an `enc:` prefix and sealed with **AES-256-GCM** (the ciphertext bundles the IV, auth tag, and payload).
-- A matching **`DOTENV_PRIVATE_KEY`**, stored in **`.env.keys`** (git-ignored), decrypts them at runtime.
-- Each environment can have its own keypair: `DOTENV_PUBLIC_KEY_PRODUCTION`, `DOTENV_PRIVATE_KEY_PRODUCTION`, etc.
+Identify:
 
-```bash
-# .env  (safe to commit)
-DOTENV_PUBLIC_KEY="03a1f2…"
-DB_PASSWORD="enc:Yx9kQ2…"
-STRIPE_SECRET="enc:Qm2v8…"
+- trusted proxies and networks;
+- public, authenticated, administrative, and webhook endpoints;
+- browser, API token, and background-worker identities;
+- tenant boundaries;
+- sensitive fields and regulated data;
+- external providers and data egress;
+- secrets and key custody;
+- process-local versus shared state;
+- restore, rotation, revocation, and incident paths.
+
+Security defaults cannot compensate for an undefined trust boundary.
+
+## Password hashing
+
+`@stacksjs/security` exposes password-hashing helpers and algorithm detection:
+
+```typescript
+import {
+  check,
+  detectAlgorithm,
+  info,
+  make,
+  needsRehash,
+} from '@stacksjs/security'
+
+const digest = await make('correct horse battery staple')
+const valid = await check('correct horse battery staple', digest)
+
+if (valid && needsRehash(digest, { rounds: 14 })) {
+  const replacement = await make('correct horse battery staple', { rounds: 14 })
+  // Persist replacement after successful authentication.
+}
+
+console.log(detectAlgorithm(digest), info(digest))
 ```
 
-```bash
-# .env.keys  (git-ignored — never commit this)
-DOTENV_PRIVATE_KEY="b7f2…"
+The supplied hashing configuration defaults to bcrypt with 12 rounds and includes Argon2 options. Benchmark the selected parameters on production-like hardware and set an authentication latency budget. Do not use MD5/base64 compatibility helpers for password storage.
+
+## Application encryption
+
+```typescript
+import { decrypt, encrypt } from '@stacksjs/security'
+
+const ciphertext = await encrypt('sensitive value')
+const plaintext = await decrypt(ciphertext)
 ```
 
-**Working with secrets:**
+The audited implementation:
+
+- derives an AES-256-GCM key from `APP_KEY` or an explicit passphrase;
+- uses a fresh salt and IV;
+- emits a versioned ciphertext format;
+- uses PBKDF2-SHA-256 for new ciphertexts;
+- retains fallback decryption for earlier formats.
+
+Operational requirements remain:
+
+- keep `APP_KEY` outside source control and client bundles;
+- back up keys separately from ciphertext;
+- define key rotation and re-encryption;
+- distinguish application encryption from database/storage encryption;
+- avoid exposing decrypted values in logs and errors.
+
+## Environment-file encryption
+
+Stacks includes commands such as:
 
 ```bash
-# Set an encrypted value (encrypts with the public key, writes enc:… into .env)
-buddy env:set STRIPE_SECRET sk_live_xxx
-
-# Encrypt an entire plaintext .env in place
+buddy env:keypair
+buddy env:set SECRET_NAME value
 buddy env:encrypt
-
-# Decrypt (e.g., for local inspection)
 buddy env:decrypt
-
-# Rotate the keypair and re-encrypt every value
 buddy env:rotate
 ```
 
-**Reading secrets in code** — the typed `env` proxy auto-coerces values and decrypts transparently:
+Encrypted values use an authenticated AES-GCM envelope and `encrypted:`/`enc:` prefixes. Environment-specific private-key variable names are supported, and `.env.keys` is intended to remain uncommitted.
 
-```typescript
-import { env } from '@stacksjs/env'
+> **Security warning:** the audited `env/src/crypto.ts` source says its public/private-key construction is a simplified implementation rather than full ECIES. The committed “public key” participates in deriving the AES key. This mechanism has not been independently reviewed in this task. Do not commit real production secrets on the assumption that this construction provides reviewed asymmetric confidentiality.
 
-const port: number = env.PORT          // "3000" → 3000
-const debug: boolean = env.DEBUG       // "true" → true
-const stripe: string = env.STRIPE_SECRET // decrypted at access time
+Prefer a deployment secret store with restricted access, audit logs, rotation, and incident controls. If environment-file encryption is used, obtain a cryptographic review and test key-loss/rotation behavior first.
 
-// Fail fast at boot if required secrets are missing
-requireEnv(['APP_KEY', 'DB_PASSWORD', 'STRIPE_SECRET'])
+## Request lifecycle controls
+
+The router path includes:
+
+- request IDs;
+- middleware short-circuiting;
+- body parsing and validation;
+- CSRF checks for applicable state-changing routes;
+- Action authorization before `handle()`;
+- response/error sanitization;
+- security/CORS header handling.
+
+Test the observable outcomes rather than assuming a middleware is active:
+
+| Test | Expected result |
+|---|---|
+| Browser-authenticated write without CSRF token | Rejected before Action |
+| Invalid Action input | `422` field errors; Action not executed |
+| Unauthenticated protected route | `401` |
+| Authenticated but unauthorized Action | `403` |
+| Missing resource | `404` stable envelope |
+| Production internal error | No stack, raw query, path, or secret |
+| Request with/without `X-Request-ID` | One correlation ID returned and logged |
+
+Route-level CSRF opt-outs exist for legitimate non-browser/webhook cases. Each exemption should be narrow and paired with an alternative authenticator such as a timing-safe webhook signature.
+
+## Authentication and authorization
+
+The auth package contains:
+
+- bearer access tokens and refresh tokens;
+- rotation, expiry, and revocation;
+- token abilities/scopes;
+- gates and policies;
+- RBAC with a configurable store;
+- password reset and email verification;
+- TOTP/two-factor helpers;
+- passkey/WebAuthn helpers;
+- session authentication.
+
+Important boundaries:
+
+- session behavior includes in-memory state and must be evaluated for multi-process deployment;
+- RBAC requires the intended store and cache invalidation after direct database changes;
+- rate-limit stores may be process-local unless configured otherwise;
+- default wildcard token abilities should be narrowed for least privilege;
+- recovery and revocation are as important as successful login.
+
+## Queries and injection
+
+Use Model/query-builder parameter binding for untrusted values. The source guards raw-query paths and prefers tagged/parameterized construction, but application code can still create vulnerabilities by:
+
+- concatenating SQL outside the guarded API;
+- interpolating identifiers without allowlists;
+- passing user-controlled sort/column names;
+- executing provider-specific raw clients;
+- logging sensitive parameters.
+
+Add injection fixtures for filters, sorting, search, and administrative query tools.
+
+## XSS and content security
+
+STX should escape ordinary expressions by default. Any raw-HTML path must accept only trusted or rigorously sanitized content.
+
+Verify:
+
+- text, attribute, URL, style, and script contexts separately;
+- Markdown/HTML sanitizer configuration;
+- CSP without unnecessary `unsafe-inline`/`unsafe-eval`;
+- upload content types and download disposition;
+- user-controlled redirect and external-link targets;
+- serialization inside inline scripts.
+
+## Headers, CORS, proxies, and TLS
+
+Security headers are only as effective as the final response leaving the edge. Test through the production load balancer/CDN:
+
+```text
+Strict-Transport-Security
+Content-Security-Policy
+X-Content-Type-Options
+X-Frame-Options or CSP frame-ancestors
+Referrer-Policy
+Permissions-Policy where applicable
 ```
 
-**Deployment** — `ts-cloud` injects only the **private key** as a managed secret (AWS Secrets Manager / SSM Parameter Store); the encrypted `.env` ships with your code. The plaintext secrets never leave your machine or your secret manager.
-
-> The parser supports variable expansion (`${VAR}`, `${VAR:-default}`) but restricts command substitution to a small whitelist (`date`, `hostname`, `whoami`, …), closing a common `.env` arbitrary-code-execution vector.
-
-## Configuration
-
-### Security Configuration
-
-```typescript
-// config/security.ts
-export default {
-  // Application key for encryption
-  key: process.env.APP_KEY,
-
-  // CSRF protection
-  csrf: {
-    enabled: true,
-    excludePaths: ['/api/webhooks/*'],
-    cookieName: 'XSRF-TOKEN',
-    headerName: 'X-XSRF-TOKEN',
-  },
-
-  // Rate limiting
-  rateLimit: {
-    enabled: true,
-    maxRequests: 60,
-    windowMs: 60000, // 1 minute
-    keyGenerator: (request) => request.ip,
-  },
-
-  // Content Security Policy
-  csp: {
-    enabled: true,
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", 'data:', 'https:'],
-      fontSrc: ["'self'"],
-      connectSrc: ["'self'"],
-      frameSrc: ["'none'"],
-      objectSrc: ["'none'"],
-    },
-    reportUri: '/csp-report',
-  },
-
-  // CORS
-  cors: {
-    enabled: true,
-    origin: ['https://myapp.com', 'https://admin.myapp.com'],
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-XSRF-TOKEN'],
-    exposedHeaders: ['X-Request-Id'],
-    credentials: true,
-    maxAge: 86400,
-  },
-
-  // Security headers
-  headers: {
-    xFrameOptions: 'DENY',
-    xContentTypeOptions: 'nosniff',
-    xXssProtection: '1; mode=block',
-    referrerPolicy: 'strict-origin-when-cross-origin',
-    strictTransportSecurity: 'max-age=31536000; includeSubDomains',
-    permissionsPolicy: 'camera=(), microphone=(), geolocation=()',
-  },
-
-  // Encryption
-  encryption: {
-    cipher: 'aes-256-gcm',
-  },
-
-  // Hashing
-  hashing: {
-    driver: 'argon2id',
-    options: {
-      memory: 65536,
-      timeCost: 4,
-      parallelism: 1,
-    },
-  },
-}
-```
-
-## CSRF Protection
-
-### How CSRF Works
-
-CSRF (Cross-Site Request Forgery) tokens prevent malicious sites from making requests on behalf of authenticated users.
-
-```typescript
-// CSRF middleware is applied automatically to web routes
-// POST, PUT, PATCH, DELETE requests require valid token
-
-// Get token in controllers
-const token = request.csrfToken()
-
-// Regenerate after login
-request.regenerateCsrfToken()
-```
-
-### Using CSRF in Forms
-
-```stx
-<!-- Token is automatically added to forms -->
-<form method="POST" action="/profile">
-  @csrf
-
-  <x-input name="name" :value="user.name" />
-  <x-button type="submit">Update</x-button>
-</form>
-
-<!-- Manual token field -->
-<form method="POST" action="/profile">
-  <input type="hidden" name="_token" value="{{ csrfToken() }}" />
-  <!-- ... -->
-</form>
-```
-
-### CSRF with JavaScript
-
-```typescript
-// Token is available in meta tag
-// <meta name="csrf-token" content="{{ csrfToken() }}">
-
-// Axios automatically sends token
-import axios from 'axios'
-
-axios.defaults.headers.common['X-XSRF-TOKEN'] =
-  document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
-
-// Fetch API
-fetch('/api/profile', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'X-XSRF-TOKEN': getCsrfToken(),
-  },
-  body: JSON.stringify(data),
-})
-```
-
-### Excluding Routes from CSRF
-
-```typescript
-// config/security.ts
-export default {
-  csrf: {
-    excludePaths: [
-      '/api/webhooks/stripe',
-      '/api/webhooks/github',
-      '/api/external/*',
-    ],
-  },
-}
-
-// Or in middleware
-export class VerifyCsrfToken extends Middleware {
-  except = [
-    '/api/webhooks/*',
-  ]
-}
-```
-
-## XSS Prevention
-
-### Output Encoding
-
-```stx
-<!-- Automatically escaped (safe) -->
-<p>{{ userInput }}</p>
-<!-- Output: &lt;script&gt;alert('xss')&lt;/script&gt; -->
-
-<!-- Raw output (use with caution) -->
-<div>{!! trustedHtml !!}</div>
-
-<!-- Only use raw for sanitized content -->
-<div>{!! sanitize(userContent) !!}</div>
-```
-
-### HTML Sanitization
-
-```typescript
-import { sanitize, sanitizeHtml } from '@stacksjs/security'
-
-// Sanitize user input
-const clean = sanitize(userInput)
-
-// Sanitize HTML with allowed tags
-const cleanHtml = sanitizeHtml(userHtml, {
-  allowedTags: ['p', 'br', 'strong', 'em', 'a', 'ul', 'li'],
-  allowedAttributes: {
-    a: ['href', 'title'],
-  },
-  allowedSchemes: ['http', 'https', 'mailto'],
-})
-
-// Strip all HTML
-const textOnly = stripTags(userInput)
-```
-
-### Content Security Policy
-
-```typescript
-// config/security.ts
-export default {
-  csp: {
-    enabled: true,
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", 'https://cdn.example.com'],
-      styleSrc: ["'self'", "'unsafe-inline'"], // For inline styles
-      imgSrc: ["'self'", 'data:', 'https:'],
-      fontSrc: ["'self'", 'https://fonts.gstatic.com'],
-      connectSrc: ["'self'", 'https://api.example.com'],
-      frameSrc: ["'none'"],
-      objectSrc: ["'none'"],
-      upgradeInsecureRequests: true,
-    },
-  },
-}
-```
-
-```typescript
-// Add nonce for inline scripts
-// Layout adds nonce automatically
-<script nonce="{{ cspNonce() }}">
-  // Inline script with nonce
-</script>
-```
-
-## Rate Limiting
-
-### Global Rate Limiting
-
-```typescript
-// config/security.ts
-export default {
-  rateLimit: {
-    enabled: true,
-    maxRequests: 60,
-    windowMs: 60000, // 1 minute
-  },
-}
-```
-
-### Route-Specific Rate Limiting
-
-```typescript
-// routes/api.ts
-import { RateLimiter } from '@stacksjs/security'
-
-// Apply rate limit to routes
-router.post('/api/login', [
-  RateLimiter.perMinute(5), // 5 attempts per minute
-], AuthController.login)
-
-router.post('/api/forgot-password', [
-  RateLimiter.perHour(3), // 3 attempts per hour
-], AuthController.forgotPassword)
-
-router.post('/api/messages', [
-  RateLimiter.perMinute(30).by((request) => request.user.id),
-], MessageController.store)
-```
-
-### Custom Rate Limiters
-
-```typescript
-import { RateLimiter } from '@stacksjs/security'
-
-// Define custom limiter
-RateLimiter.for('api', (request) => {
-  // Different limits for authenticated users
-  if (request.user) {
-    return RateLimiter.perMinute(100).by(request.user.id)
-  }
-
-  return RateLimiter.perMinute(20).by(request.ip)
-})
-
-// Premium users get higher limits
-RateLimiter.for('premium-api', (request) => {
-  if (request.user?.isPremium) {
-    return RateLimiter.perMinute(1000)
-  }
-
-  return RateLimiter.perMinute(60)
-})
-
-// Apply to routes
-router.group({ middleware: 'throttle:api' }, () => {
-  router.get('/api/data', DataController.index)
-})
-```
-
-### Rate Limit Headers
-
-```typescript
-// Response includes rate limit headers
-// X-RateLimit-Limit: 60
-// X-RateLimit-Remaining: 59
-// X-RateLimit-Reset: 1640000000
-// Retry-After: 60 (when limited)
-```
-
-### Handling Rate Limit Exceeded
-
-```typescript
-// Custom response when rate limited
-RateLimiter.for('api', (request) => {
-  return RateLimiter.perMinute(60)
-    .response((request, headers) => {
-      return response({
-        message: 'Too many requests. Please slow down.',
-        retryAfter: headers['Retry-After'],
-      }, 429)
-    })
-})
-```
-
-## Encryption
-
-### Encrypting Data
-
-```typescript
-import { Crypt } from '@stacksjs/security'
-
-// Encrypt string
-const encrypted = Crypt.encrypt('sensitive data')
-// eyJpdiI6Ik...
-
-// Decrypt
-const decrypted = Crypt.decrypt(encrypted)
-// 'sensitive data'
-
-// Encrypt objects
-const encrypted = Crypt.encrypt({ userId: 1, token: 'abc' })
-const decrypted = Crypt.decrypt(encrypted)
-// { userId: 1, token: 'abc' }
-```
-
-### Encrypted Model Fields
-
-```typescript
-// app/Models/User.ts
-export default class User extends Model {
-  static fields = {
-    email: { type: 'string' },
-    ssn: { type: 'string', encrypted: true },
-    api_key: { type: 'string', encrypted: true },
-    settings: { type: 'json', encrypted: true },
-  }
-}
-
-// Data is automatically encrypted/decrypted
-const user = await User.create({
-  email: 'user@example.com',
-  ssn: '123-45-6789', // Stored encrypted
-})
-
-console.log(user.ssn) // '123-45-6789' (decrypted)
-```
-
-### Signed URLs
-
-```typescript
-import { URL } from '@stacksjs/security'
-
-// Create signed URL
-const signedUrl = URL.signedRoute('download', {
-  file: 'report.pdf',
-}, { expiresIn: '1h' })
-
-// Verify signed URL (middleware)
-router.get('/download/:file', [
-  'signed', // Validates signature
-], DownloadController.show)
-
-// Manual verification
-if (!URL.hasValidSignature(request)) {
-  throw new InvalidSignatureException()
-}
-```
-
-## Password Hashing
-
-### Hashing Passwords
-
-```typescript
-import { Hash } from '@stacksjs/security'
-
-// Hash password
-const hashed = await Hash.make('password123')
-
-// Verify password
-const matches = await Hash.check('password123', hashed)
-
-// Check if rehash needed (algorithm changed)
-if (Hash.needsRehash(hashed)) {
-  const newHash = await Hash.make('password123')
-  await user.update({ password: newHash })
-}
-```
-
-### Password Validation
-
-```typescript
-import { Password } from '@stacksjs/validation'
-
-// Validation rules
-{
-  password: [
-    'required',
-    Password.min(8)
-      .mixedCase()      // Uppercase and lowercase
-      .numbers()        // At least one number
-      .symbols()        // At least one symbol
-      .uncompromised(), // Check against breached passwords
-  ],
-}
-```
-
-## Security Headers
-
-### Default Headers
-
-```typescript
-// Automatically set by Stacks.js
-// X-Frame-Options: DENY
-// X-Content-Type-Options: nosniff
-// X-XSS-Protection: 1; mode=block
-// Referrer-Policy: strict-origin-when-cross-origin
-// Strict-Transport-Security: max-age=31536000; includeSubDomains
-```
-
-### Custom Headers
-
-```typescript
-// config/security.ts
-export default {
-  headers: {
-    // Prevent clickjacking
-    xFrameOptions: 'SAMEORIGIN', // or 'DENY'
-
-    // Prevent MIME sniffing
-    xContentTypeOptions: 'nosniff',
-
-    // XSS filter
-    xXssProtection: '1; mode=block',
-
-    // Referrer policy
-    referrerPolicy: 'strict-origin-when-cross-origin',
-
-    // HSTS
-    strictTransportSecurity: 'max-age=31536000; includeSubDomains; preload',
-
-    // Permissions policy
-    permissionsPolicy: 'camera=(), microphone=(), geolocation=(self)',
-
-    // Custom headers
-    custom: {
-      'X-Custom-Header': 'value',
-    },
-  },
-}
-```
-
-## SQL Injection Prevention
-
-### Parameterized Queries
-
-```typescript
-// ORM automatically uses parameterized queries
-const users = await User.where('email', email).get() // Safe
-
-// Query builder is safe
-const results = await DB
-  .table('users')
-  .where('email', '=', email)
-  .get()
-
-// Raw queries with bindings
-const results = await DB.raw(
-  'SELECT * FROM users WHERE email = ?',
-  [email]
-)
-
-// NEVER do this
-// const results = await DB.raw(`SELECT * FROM users WHERE email = '${email}'`)
-```
-
-### Input Validation
-
-```typescript
-// Always validate input
-const validated = await validate(request.all(), {
-  email: 'required|email',
-  age: 'required|integer|min:0|max:150',
-  status: 'required|in:active,inactive',
-})
-
-// Use validated data
-const users = await User.where('status', validated.status).get()
-```
-
-## CORS Configuration
-
-### CORS Settings
-
-```typescript
-// config/security.ts
-export default {
-  cors: {
-    enabled: true,
-
-    // Allowed origins
-    origin: [
-      'https://myapp.com',
-      'https://admin.myapp.com',
-    ],
-
-    // Or use function for dynamic origins
-    origin: (origin, callback) => {
-      const allowed = ['myapp.com', 'admin.myapp.com']
-      if (allowed.some(domain => origin?.endsWith(domain))) {
-        callback(null, true)
-      } else {
-        callback(new Error('Not allowed'))
-      }
-    },
-
-    // Allowed methods
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-
-    // Allowed headers
-    allowedHeaders: [
-      'Content-Type',
-      'Authorization',
-      'X-Requested-With',
-      'X-XSRF-TOKEN',
-    ],
-
-    // Headers to expose to browser
-    exposedHeaders: ['X-Request-Id', 'X-RateLimit-Remaining'],
-
-    // Allow credentials (cookies)
-    credentials: true,
-
-    // Preflight cache duration
-    maxAge: 86400, // 24 hours
-  },
-}
-```
-
-## Authentication Security
-
-### Session Security
-
-```typescript
-// config/session.ts
-export default {
-  // Secure cookie settings
-  cookie: {
-    name: 'session',
-    httpOnly: true,     // Not accessible via JavaScript
-    secure: true,       // HTTPS only
-    sameSite: 'lax',    // CSRF protection
-    maxAge: 7200,       // 2 hours
-  },
-
-  // Session regeneration
-  regenerateOnLogin: true,
-  regenerateOnLogout: true,
-
-  // Concurrent session limit
-  maxSessions: 5,
-}
-```
-
-### Two-Factor Authentication
-
-```typescript
-import { TwoFactor } from '@stacksjs/auth'
-
-// Enable 2FA
-const secret = await TwoFactor.generateSecret(user)
-const qrCode = await TwoFactor.generateQrCode(user, secret)
-
-// Verify 2FA code
-const valid = await TwoFactor.verify(user, code)
-
-// Recovery codes
-const codes = await TwoFactor.generateRecoveryCodes(user)
-```
-
-### Login Throttling
-
-```typescript
-// Automatic per-account login throttling
-// After 5 failed attempts: 15 minute lockout
-
-// config/auth.ts
-export default {
-  throttle: {
-    maxAttempts: 5,
-    lockoutMinutes: 15,
-  },
-}
-```
-
-## File Upload Security
-
-```typescript
-// Validate file uploads
-const validated = await validate(request.files, {
-  avatar: 'required|image|max:2048|dimensions:min_width=100,min_height=100',
-  document: 'required|mimes:pdf,doc,docx|max:10240',
-})
-
-// Store securely
-const path = await Storage.disk('private').put(
-  'documents',
-  validated.document,
-  {
-    visibility: 'private',
-    contentType: validated.document.type,
-  }
-)
-
-// Serve with signed URL
-const url = await Storage.disk('private').temporaryUrl(path, '1h')
-```
-
-## Security Auditing
-
-### Audit Logging
-
-```typescript
-import { Audit } from '@stacksjs/security'
-
-// Log security events
-Audit.log('login', {
-  user: user.id,
-  ip: request.ip,
-  userAgent: request.userAgent,
-})
-
-Audit.log('permission_change', {
-  user: user.id,
-  admin: admin.id,
-  changes: { role: ['user', 'admin'] },
-})
-
-// Query audit logs
-const logs = await Audit
-  .where('action', 'login')
-  .where('user_id', userId)
-  .recent(30, 'days')
-  .get()
-```
-
-### Security Notifications
-
-```typescript
-// Notify on suspicious activity
-if (await isNewDevice(user, request)) {
-  await user.notify(new NewDeviceLoginNotification(request))
-}
-
-if (await isNewLocation(user, request)) {
-  await user.notify(new NewLocationLoginNotification(request))
-}
-```
-
-## CLI Security Commands
-
-```bash
-# Generate application key
-buddy key:generate
-
-# Rotate encryption key
-buddy key:rotate
-
-# Check for security issues
-buddy security:check
-
-# Update security dependencies
-buddy security:update
-
-# Audit security configuration
-buddy security:audit
-```
-
-## Best Practices
-
-### Security Checklist
-
-```typescript
-// 1. Always validate input
-const validated = await validate(request.all(), rules)
-
-// 2. Use parameterized queries
-await User.where('id', id).first() // Good
-// await DB.raw(`SELECT * FROM users WHERE id = ${id}`) // Bad
-
-// 3. Escape output
-{{ userInput }} // Good - escaped
-{!! userInput !!} // Bad - raw
-
-// 4. Use HTTPS in production
-// config/app.ts
-export default {
-  url: 'https://myapp.com',
-  forceHttps: true,
-}
-
-// 5. Keep secrets out of code
-process.env.API_KEY // Good
-const API_KEY = 'abc123' // Bad
-
-// 6. Use secure session settings
-export default {
-  cookie: { secure: true, httpOnly: true, sameSite: 'lax' },
-}
-
-// 7. Implement rate limiting
-router.post('/api/login', [RateLimiter.perMinute(5)], ...)
-
-// 8. Log security events
-Audit.log('sensitive_action', { user: user.id })
-```
+Restrict CORS origins, methods, and credentials. Configure trusted proxies before using client IPs for authorization, auditing, or rate limiting.
+
+## Webhooks
+
+For every webhook provider:
+
+- preserve the raw body required by signature verification;
+- use timing-safe comparison;
+- enforce timestamp/replay tolerance;
+- deduplicate event IDs;
+- return quickly and queue idempotent processing;
+- store enough audit metadata without storing secrets;
+- test invalid, replayed, duplicate, and out-of-order events.
+
+## Production error handling
+
+The router error path distinguishes development and production behavior and redacts common secret fields. Verify custom loggers, exception reporters, mail/SMS providers, and AI tools separately. A secret can leak before the framework error handler sees it.
+
+## Release security checklist
+
+- [ ] Pinned Stacks/Bun/provider versions
+- [ ] Threat model reviewed
+- [ ] Tests for validation, CSRF, authn, authz, and rate limits
+- [ ] Production error-redaction snapshots
+- [ ] Least-privilege tokens and cloud credentials
+- [ ] Secret-store rotation/revocation exercise
+- [ ] Dependency and source review
+- [ ] Database backup/restore rehearsal
+- [ ] Webhook replay/idempotency tests
+- [ ] CORS/CSP/TLS/proxy tests at the edge
+- [ ] Queue retry and duplicate-processing tests
+- [ ] Logs inspected for personal data and credentials
+- [ ] Incident owner, alerts, and rollback documented
+
+- [Security source at the audited revision](https://github.com/stacksjs/stacks/tree/ce19440cd6cbdb2913ff5bd821b10830eeae8e96/storage/framework/core/security/src)
+- [Auth source at the audited revision](https://github.com/stacksjs/stacks/tree/ce19440cd6cbdb2913ff5bd821b10830eeae8e96/storage/framework/core/auth/src)
+- [Environment encryption source](https://github.com/stacksjs/stacks/blob/ce19440cd6cbdb2913ff5bd821b10830eeae8e96/storage/framework/core/env/src/crypto.ts)

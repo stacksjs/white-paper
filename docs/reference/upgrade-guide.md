@@ -27,15 +27,11 @@ Before upgrading, review the [changelog](https://github.com/stacksjs/stacks/blob
 
 ### Step 3: Update Dependencies
 
+Use the framework-aware upgrade path so generated files, migrations, and the declared toolchain are considered together:
+
 ```bash
-# Update Stacks framework
-bun update @stacksjs/stacks
-
-# Update all Stacks packages
-bun update @stacksjs/*
-
-# Or update everything
-bun update
+buddy upgrade --help
+buddy upgrade
 ```
 
 ### Step 4: Run Upgrade Command
@@ -55,7 +51,7 @@ buddy doctor
 buddy test
 
 # Type check
-buddy typecheck
+buddy test:types
 
 # Build
 buddy build
@@ -74,7 +70,7 @@ When Stacks 1.0 is released, this section will contain specific migration instru
 
 ### Pre-1.0 Upgrades
 
-During the closed alpha and beta phases, breaking changes may occur more frequently. Always:
+During the pre-1.0 line, breaking changes may occur more frequently. Always:
 
 1. Pin your version in `package.json`
 2. Test thoroughly before deploying
@@ -255,23 +251,21 @@ git reset --hard HEAD~1
 # Check Bun version
 bun --version
 
-# Upgrade Bun
-bun upgrade
+# Install the version declared by the project toolchain
+pantry install
 
-# Stacks 0.x requires Bun 1.0+
-# Check compatibility matrix in release notes
+# The audited source declares Bun ^1.3.0
+buddy doctor
 ```
 
 ### TypeScript Version
 
 ```bash
-# Check TypeScript version
-bunx tsc --version
-
-# Stacks typically requires TypeScript 5.0+
-# Upgrade if needed
-bun add -d typescript@latest
+# Run the project-owned typecheck path
+buddy test:types
 ```
+
+Do not add or upgrade TypeScript independently when the project receives it through the shared `better-dx` toolchain.
 
 ### Node.js Compatibility
 

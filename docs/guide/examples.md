@@ -7,7 +7,7 @@ description: Complete code examples for common patterns and use cases
 
 Real-world code examples for common patterns in Stacks.js applications.
 
-> **Protocol context** — This guide covers the **Stacks.js reference implementation**. The behavior it relies on is specified by **the Model–View–Action architecture** in the [Stacks Protocol white paper](/) (§3), so these concepts transfer to any conformant implementation — the specific APIs shown here are TypeScript/Bun.
+> **Protocol context** — These examples illustrate the Stacks.js expression of the draft [Model–View–Action architecture](https://github.com/stacksjs/white-paper#21-modelviewaction). Syntax and package names do not transfer across implementations.
 
 ## CRUD Operations
 

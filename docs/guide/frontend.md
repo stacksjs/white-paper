@@ -7,7 +7,7 @@ description: Building UI components with Stacks.js
 
 Stacks lets you build the View layer once and ship it to multiple delivery targets — web, JSON API, desktop, mobile, and CLI — from a single codebase.
 
-> **Protocol context** — This guide covers the **Stacks.js reference implementation**. The behavior it relies on is specified by **the View layer & delivery targets** in the [Stacks Protocol white paper](/) (§3.1, §9), so these concepts transfer to any conformant implementation — the specific APIs shown here are TypeScript/Bun.
+> **Protocol context** — This guide covers Stacks.js Views and delivery adapters. Portable responsibilities appear in the draft [MVA](https://github.com/stacksjs/white-paper#21-modelviewaction) and [Delivery adapters](https://github.com/stacksjs/white-paper#22-delivery-adapters) sections.
 
 ## UI Components (STX & Web Components)
 

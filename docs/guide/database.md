@@ -7,23 +7,23 @@ description: Comprehensive guide to Stacks.js database layer and narrowly-typed 
 
 Stacks.js includes **bun-query-builder**, a fully-typed, model-driven ORM built specifically for Bun's native SQL API. It combines the elegance of Laravel's Eloquent with exceptional TypeScript type inference, delivering both developer experience and performance.
 
-> **Protocol context** — This guide covers the **Stacks.js reference implementation**. The behavior it relies on is specified by **the Data Model & Persistence contract** in the [Stacks Protocol white paper](/) (§6.4), so these concepts transfer to any conformant implementation — the specific APIs shown here are TypeScript/Bun.
+> **Protocol context** — This guide covers the **Stacks.js reference implementation**. The draft [Data and persistence contract](https://github.com/stacksjs/white-paper#44-data-and-persistence) defines portable behavior; the APIs here are TypeScript/Bun-specific and no formal conformance report exists yet.
 
 ## Key Features
 
 - **Narrowly Typed**: Types flow from model definitions through queries to results with precise inference
 - **Dynamic Methods**: Auto-generated `whereColumn()` methods from your schema
 - **Model-Driven**: Define your schema once, derive type-safe queries automatically
-- **High Performance**: 81% faster than Prisma in benchmarks, direct Bun SQL API integration
+- **Bun-Native Execution**: Integrates with Bun database/runtime primitives; benchmark your own workload with pinned versions
 - **Full-Featured**: Relationships, migrations, seeders, hooks, transactions, caching
 
 ## Multi-Dialect Support
 
 | Database | Status | Use Case |
 |----------|--------|----------|
-| SQLite | Full Support | Development, small apps |
-| MySQL | Full Support | Traditional web apps |
-| PostgreSQL | Full Support | Enterprise applications |
+| SQLite | Primary audited path | Local development and deployed workloads after scale/durability review |
+| MySQL | Driver present; verify selected operations | Traditional relational workloads |
+| PostgreSQL | Driver present; verify selected operations | Relational workloads requiring PostgreSQL features |
 
 ```typescript
 // config/database.ts
@@ -1397,15 +1397,15 @@ buddy tinker
 
 ## Performance
 
-bun-query-builder achieves exceptional performance by:
+bun-query-builder is designed around Bun database primitives, prepared statements, and narrowly typed query composition. This guide does not publish cross-ORM multipliers because the prior figures lacked a pinned public harness in this repository.
 
-1. **Direct Bun SQL API**: No ORM abstraction layer overhead
-2. **Statement Caching**: Prepared statements are cached and reused
-3. **Minimal Allocations**: Hot paths are optimized to avoid object creation
-4. **Fast Path**: Queries without hooks use an ultra-optimized execution path
+Benchmark the application’s actual reads, writes, joins, transactions, relationship loading, and pagination with:
 
-Benchmark results (vs Prisma):
-- **29x faster** on DELETE operations
-- **16x faster** on SELECT with LIMIT
-- **14x faster** on SELECT by ID
-- **Overall**: 81% win rate across 16 benchmarks
+- pinned ORM/runtime/database versions;
+- production-like data volume and indexes;
+- identical query semantics and durability settings;
+- warm-up policy and connection-pool configuration;
+- latency percentiles, throughput, errors, CPU, and memory;
+- public scripts and raw results.
+
+Use query plans and query counts to catch missing indexes and N+1 access before micro-optimizing the query-builder layer.

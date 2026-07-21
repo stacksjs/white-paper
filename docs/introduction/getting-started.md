@@ -1,104 +1,114 @@
 ---
 title: Getting Started
-description: Quick start guide for the Stacks.js framework and protocol
+description: Evaluate the Stacks.js reference implementation with its declared Pantry, Bun, Git, and SQLite toolchain.
 ---
 
 # Getting Started
 
-This guide covers using the full Stacks framework. You can also adopt individual modules in existing TypeScript projects—each `@stacksjs/*` package works independently.
+This guide evaluates the full Stacks.js framework at a pre-1.0 revision. Pin versions for repeatability and verify the exact capabilities your application selects.
 
 ## Prerequisites
 
-Before you begin, ensure you have [Bun](https://bun.sh) installed:
+The audited source declares:
+
+- Bun `^1.3.0`;
+- Git `^2.47.0`;
+- SQLite `^3.47.2`;
+- macOS, Linux, or WSL for the full project workflow.
+
+Stacks recommends [Pantry](https://pantry.dev) to provision the project toolchain.
 
 ```bash
-curl -fsSL https://bun.sh/install | bash
+curl -fsSL https://pantry.dev | bash
 ```
 
-## Create a New Project
+Follow the installer’s shell-setup instructions before continuing.
 
-Create a new Stacks application with a single command:
+## Create and run a project
 
 ```bash
-bunx stacks new my-project
+panx @stacksjs/buddy new my-project
 cd my-project
-```
-
-## Start Development
-
-Launch the development server:
-
-```bash
 buddy dev
 ```
 
-This starts:
-- HTTP server on port 3000
-- Hot module replacement
-- TypeScript compilation
-- File watching
-- Error overlay
-- Request logging
-
-## Project Structure
-
-Your new project includes:
-
-```
-my-project/
-├── app/
-│   ├── Actions/          # Business logic handlers
-│   ├── Models/           # Database models
-│   ├── Middleware/       # Request middleware
-│   ├── Jobs/             # Queue jobs
-│   └── Notifications/    # Notification classes
-├── config/               # 40+ configuration files
-├── database/
-│   ├── migrations/       # Database migrations
-│   └── seeders/          # Data seeders
-├── resources/
-│   ├── components/       # UI components
-│   ├── views/            # Page templates
-│   └── functions/        # Utility functions
-├── routes/               # Route definitions
-├── storage/              # Generated files, logs, cache
-├── tests/                # Test suite
-└── package.json
-```
-
-## Common Commands
+The exact development services and ports depend on project configuration. Use these commands to inspect the installed CLI rather than relying on a static list:
 
 ```bash
-# Development
-buddy dev              # Start development server
-buddy tinker           # Interactive REPL
-
-# Database
-buddy migrate          # Run migrations
-buddy migrate:fresh    # Fresh migration
-buddy seed             # Run seeders
-
-# Testing
-buddy test             # Run tests
-buddy test:coverage    # With coverage
-
-# Code Quality
-buddy lint             # Run linters
-buddy lint:fix         # Auto-fix issues
-buddy typecheck        # Check TypeScript
-
-# Building
-buddy build            # Build for production
-buddy build:web        # Build web assets
-buddy build:api        # Build API server
-
-# Deployment
-buddy deploy           # Deploy application
+buddy list
+buddy dev --help
+buddy doctor
 ```
 
-## Next Steps
+## Understand the project shape
 
-- [Architecture Overview](/architecture/) - Understand how Stacks is structured
-- [Frontend Development](/guide/frontend) - Build UI components
-- [Backend Development](/guide/backend) - Create APIs and business logic
-- [Database & ORM](/guide/database) - Work with data
+```text
+my-project/
+├── app/
+│   ├── Actions/          # reusable application behavior
+│   ├── Models/           # model and persistence definitions
+│   ├── Middleware/       # request middleware
+│   ├── Jobs/             # deferred work
+│   ├── Listeners/        # event listeners
+│   ├── Mail/             # mail definitions
+│   └── Commands/         # application CLI commands
+├── config/               # typed capability configuration
+├── database/
+│   ├── migrations/       # ordered schema changes
+│   └── seeders/          # seed data
+├── resources/
+│   ├── components/       # STX components
+│   ├── views/            # view templates
+│   └── functions/        # shared functions
+├── routes/               # route files registered by app/Routes.ts
+├── storage/              # framework defaults, generated artifacts, runtime data
+└── tests/                # Bun tests
+```
+
+Application paths take precedence over framework defaults at the same logical path. Customize a default by creating the corresponding file under `app/`; do not edit framework storage unless you are developing Stacks itself.
+
+## Safe first workflow
+
+```bash
+# Inspect the baseline.
+buddy doctor
+buddy test
+buddy test:types
+
+# Scaffold application behavior.
+buddy make:model Product
+buddy make:action CreateProduct
+
+# Generate and review schema changes.
+buddy generate:migrations
+buddy migrate --diff
+buddy migrate
+
+# Verify before building.
+buddy lint
+buddy test
+buddy test:types
+buddy build
+```
+
+`buddy migrate:fresh` drops tables and is appropriate only when data loss is intended, normally in development or tests.
+
+## Choose drivers deliberately
+
+Do not infer working support from a configuration union. At the audited revision:
+
+- queue `sync`, database, and Redis paths are implemented;
+- queue `sqs`, `memory`, and `beanstalkd` execution paths fail as unimplemented;
+- external mail, SMS, AI, storage, real-time scale-out, and cloud paths require their own services and credentials;
+- Craft desktop workflows require a Craft binary or checkout.
+
+Test the selected path in an environment that matches production.
+
+## Next steps
+
+- [Protocol and framework overview](/introduction/overview)
+- [Technical architecture](/architecture/)
+- [Backend guide](/guide/backend)
+- [Database and ORM](/guide/database)
+- [Security](/guide/security)
+- [Testing](/developer-experience/testing)

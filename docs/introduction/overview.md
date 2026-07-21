@@ -1,138 +1,91 @@
 ---
 title: Framework & Protocol Overview
-description: What Stacks.js provides as both a protocol and framework
+description: What the draft protocol standardizes, what Stacks.js implements, and what remains implementation-specific.
 ---
 
 # Framework & Protocol Overview
 
-## What is Stacks?
+Stacks separates portable behavior from one concrete framework.
 
-Stacks is an **open protocol and reference implementation** for building full-stack TypeScript applications. As a protocol, it defines standardized interfaces, conventions, and specifications. As a framework, it provides a batteries-included implementation optimized for the Bun runtime.
+```text
+Protocol draft
+  ├── roles and conventions
+  ├── lifecycle guarantees
+  ├── capability contracts
+  └── conformance tests and reports
 
-### The Protocol Layer
-
-The Stacks protocol establishes open specifications for:
-
-- **Model Contracts**: Interface definitions for data models, relationships, and lifecycle hooks
-- **Request/Response Schemas**: Standardized validation, serialization, and error formats
-- **Driver Interfaces**: Pluggable adapters for databases, caches, queues, storage, mail, and cloud providers
-- **Routing Conventions**: Patterns for file-based and declarative route definitions
-- **Component Specifications**: STX and Web Component contracts for reusable UI
-- **Module APIs**: Each of the 77 packages exposes a defined interface for interoperability
-
-### The Framework Layer
-
-The reference implementation provides:
-
-- **Frontend**: STX components, Web Components, templating engine, CSS framework
-- **Backend**: HTTP routing, middleware, validation, business logic patterns
-- **Database**: Multi-dialect ORM, query builder, migrations, seeders
-- **Infrastructure**: ts-cloud integration (zero-dependency IaC), serverless support, deployment automation
-- **Services**: Authentication, payments, email, SMS, notifications, queues
-- **AI**: Multi-provider AI integration, voice assistant, code generation
-- **CLI**: Comprehensive command-line toolkit with 50+ command categories
-- **Desktop**: Craft-based desktop application support
-- **Libraries**: Tools for publishing npm packages and component libraries
-
-## Core Principles
-
-### Protocol-Driven Conventions
-
-The protocol defines conventions (inspired by Laravel and Rails) that enable tooling, code generation, and ecosystem interoperability:
-
-```
-app/
-├── Actions/          # Business logic handlers
-├── Models/           # Database models
-├── Middleware/       # Request middleware
-├── Jobs/             # Queue jobs
-└── Notifications/    # Notification classes
-
-config/               # 40+ configuration files
-database/
-├── migrations/       # Database migrations
-└── seeders/          # Data seeders
-resources/
-├── components/       # UI components
-├── views/            # Page templates
-└── functions/        # Utility functions
-routes/               # Route definitions
+Stacks.js reference implementation
+  ├── TypeScript + Bun
+  ├── STX + Crosswind
+  ├── Actions + router + validation
+  ├── Models + ORM + migrations
+  ├── auth + queues + real-time + notifications
+  └── Buddy tooling + deployment integrations
 ```
 
-Files in these directories are auto-discovered. Models are automatically mapped to database tables. Components are auto-imported. Routes are file-based or explicitly defined.
+## Protocol layer
 
-### Everything is Auto-Importable
+The protocol standardizes behaviors that another language could reproduce:
 
-Stacks eliminates manual imports — functions, composables, components, utilities, and Actions are all globally available without explicit import statements:
+| Area | Portable requirement |
+|---|---|
+| Architecture | Models own domain data, Views project data, Actions own reusable application behavior. |
+| Conventions | Application roles and their resolution/registration rules are deterministic. |
+| Lifecycle | Middleware, validation, authorization, Action execution, and serialization preserve a documented order. |
+| Data | Models, relationships, transactions, migrations, and query behavior meet shared fixtures. |
+| Drivers | Each working backend passes its capability contract; unsupported names fail clearly. |
+| Type evidence | Implementations disclose what is inferred, generated, cast, or runtime-validated. |
+| Conformance | A profile claim names the suite, runtime, platform, drivers, results, and exceptions. |
 
-```typescript
-// No imports needed! Everything just works:
-const { user, login } = useAuth()              // From ./app/Composables/useAuth
-const price = formatCurrency(99.99)             // From ./app/Utils/formatCurrency
-await CreateUser.handle({ name: 'John' })       // From ./app/Actions/CreateUser
-const posts = await Post.all()                  // Model from ./app/Models/Post
-```
+The protocol does not standardize TypeScript syntax, STX templates, Bun APIs, package names, cloud SDKs, or raw driver wire formats.
 
-This is powered by `bun-plugin-auto-imports` which:
-- Scans configured directories (`./app/Actions`, `./app/Composables`, `./components`, etc.)
-- Generates TypeScript declarations for full IDE IntelliSense
-- Includes presets for Vue, React, Solid.js, and other frameworks
-- Works at both build-time and runtime
+## Reference implementation layer
 
-The result: cleaner code, faster development, and no import management overhead.
+Stacks.js supplies one expression of the protocol:
 
-### Zero-Config Development
+- `Action` objects with validation, authorization, hooks, and `handle()`;
+- string-resolved and inline routes with groups, middleware, names, and URL generation;
+- `defineModel()` definitions with attributes, relationships, traits, factories, and events;
+- model-diff migration generation plus reviewable migration files;
+- API resources and optional OpenAPI generation;
+- bearer-token auth, refresh/revocation, gates, policies, RBAC, TOTP, and passkeys;
+- sync/database/Redis Job execution and cron-style scheduling;
+- real-time broadcasting and database/provider notification surfaces;
+- compiler inference, runtime validation, and generated declarations;
+- Buddy commands for development, scaffolding, quality, migration, build, and deploy workflows.
 
-Starting a new project requires no configuration:
+## Profiles and extensions
 
-```bash
-bunx stacks new my-app
-cd my-app
-buddy dev
-```
+Profiles are nested:
 
-The development server starts with hot reloading, TypeScript compilation, and all framework features enabled.
+- **Core** — conventions, MVA, routing/lifecycle, validation, data, configuration, errors, and security baseline.
+- **Standard** — Core plus authentication, a durable queue, driver guarantees, observability, and type evidence.
+- **Complete** — Standard plus rendered views, JSON APIs, real-time messaging, multi-channel notifications, and one deployment adapter.
 
-### Explicit Over Implicit (When It Matters)
+AI, analytics, desktop, CMS, commerce, search, and internationalization are optional extension badges. Their absence does not prevent baseline conformance.
 
-While conventions reduce boilerplate, Stacks favors explicitness for business logic:
+No profile is formally certified yet because the language-neutral suite and report schema remain proposed work.
 
-```typescript
-// Actions are explicit about their inputs and outputs
-export default async function CreateUser(request: CreateUserRequest): Promise<User> {
-  const validated = await validate(request, CreateUserSchema)
-  const user = await User.create(validated)
-  await SendWelcomeEmail.dispatch(user)
-  return user
-}
-```
+## Auto-imports and discovery
 
-## Target Audience
+Stacks.js uses several mechanisms, not one universal “everything is global” rule:
 
-Stacks serves four primary audiences:
+- STX templates receive browser-side composables, components, and selected functions through generated manifests/plugins.
+- Server contexts expose built-in Models and selected application resources through server auto-imports.
+- framework source and application TypeScript still import many core helpers explicitly, including `defineModel`, `schema`, `route`, `response`, and `Action` in normal examples.
+- route files are registered through `app/Routes.ts`; merely creating an arbitrary route file is not sufficient.
+- application files override framework defaults at the same logical path.
 
-### Indie Developers & Startups
+Run `buddy generate` after changing inputs that feed generated declarations or manifests.
 
-Stacks enables solo developers and small teams to build production-ready applications quickly. The integrated feature set (auth, payments, email, etc.) eliminates the need to evaluate and integrate third-party services for common requirements.
+## Scope and maturity
 
-### Enterprise Teams
+The audited revision has substantial implementation depth, but capability selection still matters. For example, queue execution supports `sync`, database, and Redis while rejecting several configured-but-unimplemented driver names. Desktop builds require Craft. OpenAPI output requires explicit generation. Environment encryption has not been independently audited.
 
-Large organizations benefit from Stacks' consistency and type safety. The protocol's conventions reduce onboarding time, while its modularity allows teams to adopt components incrementally within existing systems.
+Use the [white paper maturity matrix](https://github.com/stacksjs/white-paper#7-capability-evidence-and-maturity) before treating a feature list as a deployment guarantee.
 
-### Library Authors
+## Next
 
-The protocol and publishing tools support developers creating and distributing:
-
-- STX component libraries following the component specification
-- Web Component packages using Stacks conventions
-- Utility function libraries compatible with Stacks types
-- CLI applications using the Buddy CLI patterns
-
-### Protocol Implementers
-
-Framework authors and tool builders can:
-
-- Implement alternative backends for Stacks driver interfaces
-- Build tooling that leverages Stacks conventions
-- Create integrations that work with any Stacks-compatible project
-- Extend the protocol with custom module specifications
+- [Get started](/introduction/getting-started)
+- [Technical architecture](/architecture/)
+- [Configuration](/reference/configuration)

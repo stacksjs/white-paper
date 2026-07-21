@@ -1,7 +1,7 @@
 {
   "name": "stacks-white-paper",
   "version": "0.1.0",
-  "description": "Stacks.js White Paper - A comprehensive, batteries-included full-stack framework for TypeScript & Bun",
+  "description": "Source-audited draft specification for the Stacks Protocol and its TypeScript/Bun reference implementation",
   "type": "module",
   "packageManager": "bun@1.3.14",
   "engines": {
@@ -12,11 +12,13 @@
     "build": "bunpress build",
     "preview": "bunpress preview",
     "clean": "bunpress clean",
+    "deploy:workflow": "cloud quick-deploy --env production --site whitepaper --skip-dns-verification --force",
     "deploy": "cloud deploy --env production --site whitepaper --yes",
     "deploy:ci": "cloud deploy --env production --site whitepaper --skip-dns-verification --yes"
   },
   "devDependencies": {
-    "@stacksjs/bunpress": "^0.1.20"
+    "@stacksjs/bunpress": "^0.1.20",
+    "@stacksjs/ts-cloud": "^0.7.53"
   },
   "keywords": [
     "stacks",

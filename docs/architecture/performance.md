@@ -1,102 +1,78 @@
 ---
 title: Runtime & Performance
-description: How Stacks.js leverages Bun for exceptional performance
+description: How to reason about Stacks.js performance without unsupported framework-wide benchmark claims.
 ---
 
 # Runtime & Performance
 
-## Bun Runtime Optimization
+Stacks.js targets Bun for runtime, package management, builds, and tests. That unified toolchain can simplify application operation, but runtime choice alone does not determine application performance.
 
-Stacks is built exclusively for Bun, leveraging its unique performance characteristics:
+## What the architecture affects
 
-### Native TypeScript Execution
+Performance depends on:
 
-Bun executes TypeScript directly without a separate compilation step. This eliminates:
+- route matching and middleware depth;
+- validation and serialization cost;
+- database query count, indexes, and result size;
+- remote provider latency;
+- queue driver and worker concurrency;
+- template rendering and asset delivery;
+- logging volume;
+- process-local versus shared state;
+- deployment topology and cold starts.
 
-- Build watch processes during development
-- Source map complexity
-- Type stripping overhead
+## No universal benchmark claim
 
-### Unified Tooling
+This documentation does not claim a fixed multiplier over Node.js or another framework. Valid comparisons require:
 
-Bun provides runtime, package manager, bundler, and test runner in one binary:
+- pinned runtime/framework versions;
+- identical application behavior and payloads;
+- warm-up policy;
+- hardware and operating system;
+- concurrency and connection settings;
+- database location and state;
+- percentiles, throughput, errors, CPU, and memory;
+- public scripts and raw results.
 
-```bash
-bun install          # Package management (faster than npm/yarn/pnpm)
-bun run              # Script execution
-bun test             # Test runner
-bun build            # Production bundling
-```
+## Built-in observability hooks
 
-### Performance Characteristics
+The audited source provides useful measurement inputs:
 
-Bun's V8-alternative JavaScriptCore engine delivers:
+- `X-Request-ID` response correlation;
+- `Server-Timing` handling in the router path;
+- structured logging with trace IDs;
+- request duration fields in framework models/actions;
+- queue metrics and health checks;
+- query tracking for error/debug context.
 
-- **Startup Time**: ~3x faster than Node.js
-- **HTTP Throughput**: Higher requests/second for API workloads
-- **Memory Usage**: Lower baseline memory footprint
+These are instrumentation surfaces, not a full distributed-observability backend.
 
-## Zero-Config Defaults
-
-Stacks ships with production-ready defaults:
-
-```typescript
-// Development server starts with one command
-buddy dev
-
-// Includes:
-// - Hot module replacement
-// - TypeScript compilation
-// - API server
-// - File watching
-// - Error overlay
-// - Request logging
-```
-
-Production builds require no additional configuration:
+## Measure the production build
 
 ```bash
+buddy test
+buddy test:types
 buddy build
-# Outputs optimized bundles for deployment
 ```
 
-## Build System
+Benchmark the resulting production server and its real dependencies. Do not use a hot-reload development process as the production baseline.
 
-The build system supports multiple output targets:
+Record at minimum:
 
-### Web Applications
+| Signal | Why it matters |
+|---|---|
+| p50/p95/p99 latency | Typical and tail user experience |
+| throughput | Capacity at a stated concurrency |
+| error/timeout rate | Whether throughput is useful |
+| CPU and resident memory | Cost and saturation |
+| database queries/request | N+1 and chatty persistence |
+| external-call time | Provider bottlenecks |
+| event-loop delay | Runtime saturation |
+| queue age and retry rate | Background-work health |
 
-```bash
-buddy build:web
-# - STX component compilation
-# - Asset optimization
-# - Code splitting
-# - Tree shaking
-```
+## Performance is a conformance non-goal
 
-### API/Server
+The protocol standardizes behavior, not speed. Implementations may publish performance profiles separately, using reproducible harnesses. A faster implementation that changes error, transaction, or lifecycle semantics is not conformant merely because it is faster.
 
-```bash
-buddy build:api
-# - Server bundle
-# - Dependency bundling
-# - Environment handling
-```
-
-### Desktop Applications
-
-```bash
-buddy build:desktop
-# - Craft application packaging
-# - Cross-platform binaries
-# - Native integrations
-```
-
-### Library Publishing
-
-```bash
-buddy build:lib
-# - ESM and CJS outputs
-# - Type declarations
-# - Package.json generation
-```
+- [Performance tuning](/advanced/performance)
+- [Request lifecycle](/architecture/request-lifecycle)

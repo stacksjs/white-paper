@@ -107,14 +107,7 @@ const posts = await DB.selectFrom('posts')
   .get()
 ```
 
-**Performance (vs Prisma):**
-
-| Operation | bun-query-builder | Advantage |
-|-----------|-------------------|-----------|
-| DELETE | 29.29x faster | Native SQL |
-| SELECT + LIMIT | 16.45x faster | No ORM overhead |
-| COUNT | 12.65x faster | Direct aggregation |
-| SELECT by ID | 13.8x faster | Statement caching |
+**Performance:** bun-query-builder targets Bun-native database execution and prepared statements. Cross-ORM multipliers have been removed from this guide until a pinned harness, equivalent semantics, environment description, and raw results are published. Benchmark the selected database and workload directly.
 
 **Supported Databases:**
 - PostgreSQL (with JSONB, ILIKE, FOR SHARE)

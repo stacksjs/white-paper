@@ -7,7 +7,7 @@ description: Deploying Stacks.js applications across different platforms
 
 The Stacks.js reference implementation can target the web, desktop, CLIs, libraries, and serverless from a single codebase, with infrastructure managed by ts-cloud.
 
-> **Protocol context** — This page describes how the **Stacks.js reference implementation** satisfies the **Infrastructure & deployment** contract (§7.5, §14) of the [Stacks Protocol white paper](/); the specific packages and Bun tooling shown here are TypeScript/Bun-specific.
+> **Protocol context** — This page describes Stacks.js-specific tooling related to the draft [Infrastructure and deployment contract](https://github.com/stacksjs/white-paper#55-infrastructure-and-deployment). Provider support must be verified against the installed integration; no formal conformance report exists yet.
 
 ## Web Applications
 
@@ -142,7 +142,7 @@ Generated package:
 
 ## Cross-Platform Binary Distribution
 
-Stacks leverages Bun's native compilation to produce standalone executables for all major platforms. This enables zero-dependency distribution of your applications.
+Stacks can use Bun's native compilation for selected executable targets. Test each operating system and architecture explicitly; a compiled launcher may still depend on external services, system libraries, assets, or a companion runtime.
 
 ### Supported Platforms
 

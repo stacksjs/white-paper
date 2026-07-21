@@ -1,91 +1,71 @@
 ---
 title: Introduction
-description: Understanding the problem Stacks.js solves and its dual nature as framework and protocol
+description: The problem Stacks addresses, the protocol/framework boundary, and the maturity of the current reference implementation.
 ---
 
 # Introduction
 
-## The Problem: Modern Web Development Complexity
+Full-stack development is a coordination problem. Requests, validation, domain behavior, persistence, identity, jobs, views, and deployment all influence one another. Teams can assemble those concerns from independent libraries, but they then own the naming, configuration, lifecycle, error formats, type boundaries, and upgrades between them.
 
-The contemporary JavaScript/TypeScript ecosystem presents developers with an unprecedented paradox: more tools than ever, yet more friction than ever. Building a production-ready web application requires decisions across dozens of categories:
+Opinionated frameworks reduce that work through convention. The convention is valuable knowledge, yet it is usually embedded in one language and implementation.
 
-- **Runtime**: Node.js, Deno, or Bun?
-- **Framework**: Next.js, Nuxt, Remix, SvelteKit, or Astro?
-- **API Layer**: REST, GraphQL, tRPC, or gRPC?
-- **Database**: PostgreSQL, MySQL, SQLite, MongoDB, or serverless options?
-- **ORM**: Prisma, Drizzle, TypeORM, or Kysely?
-- **Authentication**: Auth0, Clerk, NextAuth, or custom implementation?
-- **Styling**: Tailwind, CSS Modules, styled-components, or vanilla CSS?
-- **State Management**: Redux, Zustand, Jotai, or signals?
-- **Testing**: Jest, Vitest, Playwright, or Cypress?
-- **Deployment**: Vercel, Cloudflare, AWS, or self-hosted?
+Stacks asks a narrower, more testable question:
 
-Each decision cascades into further choices, configuration requirements, and integration challenges. The result is "JavaScript fatigue"—a state where developers spend more time configuring tools than building features.
+> Which full-stack conventions and behavioral guarantees are portable enough to specify independently of their implementation?
 
-**Contrast this with the Laravel or Rails experience**: a single installation provides routing, templating, ORM, migrations, authentication, queues, mail, and more. Conventions replace configuration. Documentation is unified. The community speaks a common language.
+## Two layers
 
-**However, Laravel's ecosystem has evolved toward a service-oriented model.** While Laravel itself is open-source, many essential features require paid first-party services: Forge for server management, Vapor for serverless deployment, Nova for admin panels, Pulse for monitoring, Reverb for WebSockets, and more. What begins as a "free" framework often requires significant subscription costs to unlock its full potential in production.
+### The Stacks Protocol
 
-**Stacks takes a different approach: everything is built-in and free.** Authentication, real-time WebSockets, job queues, email, payments integration, cloud deployment (ts-cloud), admin dashboards, analytics, and more—all included out of the box, fully configured, and ready to use. No subscription tiers. No feature gates. No vendor lock-in.
+The protocol is a working draft. It proposes:
 
-Stacks sustains development through an optional **Stacks Dashboard**—a management UI that streamlines deployment, monitoring, and team collaboration ($19/month for individuals, $59/month for businesses). The dashboard is purely optional; the framework and all its features remain completely free and open-source.
+- Model–View–Action responsibilities;
+- canonical application roles and deterministic override behavior;
+- an ordered request lifecycle;
+- routing, validation, data, configuration, authentication, queue, security, and observability contracts;
+- driver rules that distinguish configured names from tested implementations;
+- Core, Standard, and Complete conformance profiles;
+- optional badges for AI, analytics, desktop, CMS, commerce, search, and internationalization.
 
-## The Solution: Stacks.js as Framework & Protocol
+The protocol leaves language, runtime, template syntax, database engine, cloud provider, and performance strategy open.
 
-Stacks draws deep inspiration from Laravel and Rails—their conventions, developer experience, and batteries-included philosophy. But Stacks goes further by being not just a framework, but also an **open protocol**. This means Stacks establishes conventions and interfaces that enable true ecosystem interoperability: packages built on Stacks specifications work with any Stacks-compatible project, and the protocol can have multiple implementations.
+### Stacks.js
 
-Stacks.js is built **by developers, for developers**. Born from years of experience building production applications and the frustration of juggling disparate tools, Stacks reimagines full-stack TypeScript development by providing both a **protocol** (the specification) and a **framework** (the implementation).
+[Stacks.js](https://github.com/stacksjs/stacks) is the TypeScript/Bun reference implementation. At the white paper’s audited source revision, it contains 77 `@stacksjs/*` workspace package manifests and concrete surfaces for routing, Actions, Models, migrations, validation, auth, queues, real-time messaging, notifications, AI, logging, health, UI, and developer tooling.
 
-### As a Protocol
+It is also pre-1.0. Some configuration types include drivers that are not implemented; generated artifacts can become stale; selected provider and desktop paths require external infrastructure; and a formal protocol conformance suite has not yet been published.
 
-Stacks defines open, documented specifications for:
+## Design principles
 
-**Type Contracts**: Standardized TypeScript interfaces for models, requests, responses, validation, and services. Any implementation conforming to these interfaces can integrate with the ecosystem.
+### Portable understanding
 
-**Convention Patterns**: Documented file structures, naming conventions, and architectural patterns that enable tooling, code generation, and team consistency.
+Developers should recognize an application’s roles, resolution order, and request flow across conformant implementations.
 
-**Driver Interfaces**: Pluggable adapters for databases, caches, queues, storage, and cloud providers. Write once, deploy anywhere.
+### Progressive disclosure
 
-**Module Specifications**: Each of the 77 modules has a defined interface, allowing alternative implementations or selective adoption.
+A local baseline should work with documented prerequisites and defaults. External services should fail clearly when selected without the required infrastructure or credentials.
 
-### As a Framework
+### Explicit boundaries
 
-The reference implementation provides:
+Models, Actions, Views, drivers, and adapters should have clear responsibilities. Dynamic resolution and generated artifacts should be documented rather than described as invisible magic.
 
-**A Complete Stack**: Everything needed to build modern applications—from UI components to cloud infrastructure—in one cohesive package.
+### Evidence over adjectives
 
-**Convention Over Configuration**: Sensible defaults that work out of the box, with escape hatches for customization when needed.
+Package count, feature breadth, and test-file count describe scope. They do not prove production fitness, security, or performance. Conformance claims should link to fixtures, environments, and results.
 
-**Type Safety Throughout**: End-to-end TypeScript, with types flowing seamlessly from database schemas to API responses to frontend components.
+### Batteries included, maturity disclosed
 
-**Modern Runtime**: Built for Bun, leveraging its speed, native TypeScript support, and unified tooling (runtime, package manager, bundler, test runner).
+An integrated framework can reduce glue work, but each capability must still state whether it is implemented, partial, experimental, planned, or outside the audit.
 
-**AI Integration**: First-class support for AI providers, enabling intelligent code generation, natural language development, and AI-powered features in applications.
+## Current status
 
-## Design Philosophy
+The paper targets Stacks source commit [`ce19440`](https://github.com/stacksjs/stacks/tree/ce19440cd6cbdb2913ff5bd821b10830eeae8e96) from 21 July 2026. The root manifest reports `0.70.52`, while framework workspaces report `0.70.161`; the commit is therefore the primary source identifier.
 
-Stacks is built on six foundational principles:
+Stacks.js should currently be described as the **reference implementation and an unverified Complete candidate**. Formal conformance awaits a public suite and machine-readable report.
 
-### Principle 1: Developer Joy
+## Continue
 
-Every API decision, every default configuration, every error message is evaluated against a simple question: Does this bring joy to developers? Stacks optimizes for the developer experience, recognizing that productive developers build better software.
-
-### Principle 2: Progressive Disclosure
-
-Simple things should be simple; complex things should be possible. Stacks provides zero-configuration defaults for common patterns while exposing full control when needed. A beginner can build their first application in minutes; an expert can customize every aspect.
-
-### Principle 3: Type-Driven Development
-
-TypeScript is not an afterthought but the foundation. Types are generated, inferred, and validated at every layer. The compiler catches errors before runtime. IDE integration provides intelligent completions. Types are documentation.
-
-### Principle 4: Batteries Included, Batteries Removable
-
-Stacks ships with solutions for common requirements—authentication, payments, email, queues—but none are mandatory. Each module is independently usable and replaceable. The framework adapts to the project, not vice versa.
-
-### Principle 5: Protocol-First Design
-
-Every module exposes well-defined interfaces that serve as specifications. Third parties can implement alternative backends, extend functionality, or integrate individual packages. The protocol enables an ecosystem; the framework is one implementation of it.
-
-### Principle 6: AI as Collaborator
-
-AI capabilities are woven throughout the protocol, not bolted on. From code generation to codebase exploration to application features, AI assistance is available at every level—for developers and end users alike.
+- [Framework and protocol overview](/introduction/overview)
+- [Getting started](/introduction/getting-started)
+- [Technical architecture](/architecture/)
+- [Full white paper](https://github.com/stacksjs/white-paper#readme)

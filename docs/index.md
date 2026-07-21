@@ -1,88 +1,93 @@
 ---
-title: Stacks - A Protocol & Reference Implementation for Full-Stack Apps
-description: An open, language-agnostic protocol for building full-stack applications, with Stacks.js as its TypeScript/Bun reference implementation.
+title: Stacks — Draft Protocol & Reference Implementation
+description: A source-audited draft protocol for full-stack application development, with Stacks.js as its TypeScript/Bun reference implementation.
 layout: home
 hero:
   name: Stacks
-  text: Protocol & Reference Implementation
-  tagline: An open, language-agnostic protocol for building full-stack applications — and Stacks.js, its batteries-included reference implementation in TypeScript on Bun. The conventions of Laravel & Rails, made portable.
+  text: Draft Protocol & Reference Implementation
+  tagline: Portable full-stack conventions and testable capability contracts, grounded in a source-audited TypeScript/Bun implementation.
   actions:
     - theme: brand
-      text: Get Started
+      text: Read the White Paper
+      link: https://github.com/stacksjs/white-paper#readme
+    - theme: alt
+      text: Evaluate Stacks.js
       link: /introduction/getting-started
     - theme: alt
-      text: View on GitHub
+      text: View Source
       link: https://github.com/stacksjs/stacks
 features:
-  - title: Open Protocol
-    details: A language-agnostic specification of the conventions, architecture, and interface contracts a full-stack framework needs. The protocol defines what; implementations decide how.
-  - title: Reference Implementation
-    details: Stacks.js is the first conformant implementation — Bun-native, MIT-licensed, batteries-included, with 77 independently usable packages.
-  - title: Portable Conventions
-    details: Directory layout, the Model–View–Action architecture, and naming rules learned once apply to every conformant implementation, in any language.
-  - title: AI-First Development
-    details: A provider-agnostic AI integration contract — Claude, OpenAI, and local models — powers in-app features and the Buddy development assistant.
-  - title: Servers & Serverless, Built In
-    details: ts-cloud manages both long-lived server fleets and serverless deployments from one config — the Forge + Vapor experience, open and free. Zero-dependency, AWS and Hetzner drivers today.
-  - title: Privacy-First Analytics
-    details: Cookieless, no-PII product analytics as a core capability (via ts-analytics) — daily-rotating-salt visitor hashing, no consent banner required.
-  - title: Encrypted Secrets, Committed Safely
-    details: A dotenvx-inspired encrypted .env — values sealed with AES-256-GCM under a committed public key, decrypted by a private key kept out of the repo. Version your whole config without leaking secrets.
-  - title: End-to-End Type Safety
-    details: An unbroken type contract from data definitions to API responses to views. In Stacks.js, the compiler is your documentation.
+  - title: Protocol, Clearly Bounded
+    details: Part I defines portable conventions, lifecycle guarantees, capability contracts, profiles, and non-goals. Runtime and syntax remain implementation choices.
+  - title: Source-Audited
+    details: Implementation statements are pinned to Stacks source revision ce19440 from 21 July 2026, with root and workspace versions recorded separately.
+  - title: Honest Maturity
+    details: Capabilities are labeled Implemented, Partial, Experimental, Planned, or Not Audited. Configured providers are not assumed to be working drivers.
+  - title: Model–View–Action
+    details: Models define domain data, Views project prepared data, and transport-independent Actions hold reusable application behavior.
+  - title: Testable Conformance
+    details: Core, Standard, and Complete profiles have requirement IDs and minimum evidence. Formal conformance awaits a public suite and report.
+  - title: Type Evidence
+    details: Stacks.js combines compiler inference, runtime validation, generated declarations, migrations, API artifacts, and contract tests—with dynamic boundaries disclosed.
+  - title: Security With Caveats
+    details: The paper documents concrete controls and material limits; it does not turn framework features into blanket security or legal-compliance claims.
+  - title: Pre-1.0 by Design
+    details: Stacks.js is usable for evaluation and active development, but selected drivers and delivery targets must be verified for each workload.
 ---
 
 # Stacks White Paper
 
-**Protocol Version 1.0 (Draft) · Reference Implementation `stacks.js` 0.70.45 · Closed Beta (January 2026)**
+**Protocol 1.0 Draft · Source snapshot 21 July 2026 · Pre-1.0**
 
-## Abstract
+Stacks proposes a language-neutral protocol for the recurring coordination work of full-stack applications: routing, validation, Actions, persistence, authentication, background work, rendering, observability, and deployment boundaries.
 
-**Stacks is an open protocol for building full-stack applications** — a language-agnostic specification of the conventions, interface contracts, and architectural patterns that full-stack applications need: how requests are routed and validated, how data is modeled and persisted, how users are authenticated, how background work runs, and how applications deploy. The protocol defines *what* a conformant framework provides and *how its pieces fit together*, leaving *how* each piece is built to the host language and runtime.
+[Stacks.js](https://github.com/stacksjs/stacks) is the first reference implementation. It is written in TypeScript for Bun and spans 77 `@stacksjs/*` workspace package manifests. The current paper audits the supplied source at commit [`ce19440`](https://github.com/stacksjs/stacks/tree/ce19440cd6cbdb2913ff5bd821b10830eeae8e96), rather than presenting moving package counts and product claims as timeless facts.
 
-**Stacks.js is the protocol's first reference implementation**, written in TypeScript and built from the ground up for the Bun runtime. It proves the protocol is buildable, complete, and pleasant to use, comprising 77 specialized packages that implement every contract the protocol defines.
+## Read this first
 
-This white paper is organized in three parts: **Part I** specifies the Stacks Protocol in language-agnostic terms; **Part II** describes Stacks.js and how it satisfies each contract; **Part III** defines conformance and guides new implementations in other languages.
+The protocol is a **working draft**, not a ratified standard. Stacks.js is an **unverified Complete candidate**, not a certified implementation: no independent protocol conformance suite or machine-readable report exists yet.
 
-## Executive Summary
+The audit found substantial implemented surfaces for routing, Actions, Models, migrations, validation, auth, queues, real-time messaging, notifications, AI, logging, and health. It also found important boundaries:
 
-Modern application development has become increasingly fragmented. Developers orchestrate dozens of tools, libraries, and frameworks—each with its own configuration and conventions. Opinionated frameworks like Laravel and Rails solved this *within* their languages by replacing configuration with convention, but their conventions are not portable: the knowledge does not travel across language boundaries because there is no specification, only code.
+- queue execution supports `sync`, database, and Redis; some other configured names are not implemented;
+- OpenAPI generation is explicit, so checked-in output can be stale or empty;
+- analytics provides integrations and a client script, not the previously claimed complete reporting system;
+- environment encryption exists, but its source describes the public/private-key construction as simplified rather than full ECIES;
+- Craft desktop launch/build paths require an external Craft binary and remain experimental;
+- native mobile delivery is not established by the audited Stacks source.
 
-**Stacks addresses this at two layers.**
+The full paper turns those findings into a concrete maturity matrix and a testable conformance design.
 
-### The Protocol — language-agnostic
+## Reference snapshot
 
-The Stacks Protocol specifies, independently of any single language:
+| Field | Value |
+|---|---|
+| Source revision | [`ce19440cd6cb2913ff5bd821b10830eeae8e96`](https://github.com/stacksjs/stacks/tree/ce19440cd6cbdb2913ff5bd821b10830eeae8e96) |
+| Root manifest | `0.70.52` |
+| Framework workspaces | `0.70.161` |
+| Runtime | Bun `^1.3.0` |
+| System requirements | Git `^2.47.0`, SQLite `^3.47.2` |
+| Protocol status | 1.0 working draft |
 
-- **Conventions**: directory layout, naming, and auto-discovery that make applications legible regardless of implementation language.
-- **The Model–View–Action architecture**: a clear separation of data, presentation, and business logic.
-- **Interface contracts**: routing, validation, data modeling, authentication, configuration, queues, real-time, and notifications.
-- **The driver pattern**: a uniform way to swap databases, caches, queues, storage, and cloud providers behind stable interfaces.
-- **A type-contract requirement**: types flow from data definitions to responses and views.
-- **Conformance levels**: Core, Standard, and Complete, so implementations interoperate at the convention level.
+## Quick start
 
-Because these are specifications rather than code, they can be implemented in any language—conventions learned once travel to every conformant implementation.
-
-### The Reference Implementation — Stacks.js
-
-Stacks.js proves the protocol in practice. Built exclusively for **Bun** (`^1.3.0`, macOS/Linux/WSL), it provides a batteries-included framework—frontend UI, backend APIs, a typed ORM, cloud IaC, real-time messaging, passwordless authentication, payments, queues, and an AI-powered CLI—across 77 independently usable packages. Everything is MIT-licensed and built-in: no feature gates, no per-feature subscriptions, no vendor lock-in.
-
-**Why a protocol, not just a framework?** Portability of knowledge (conventions apply everywhere), longevity (a specification outlives any runtime), and plurality (multiple implementations interoperate at the contract level). Stacks.js is the first conformant implementation; the protocol is explicitly designed so that implementations in other languages can satisfy the same contracts, with this white paper as the shared specification.
-
-## Quick Start (Reference Implementation)
+The supplied source recommends Pantry for toolchain provisioning:
 
 ```bash
-bunx buddy new my-project
+curl -fsSL https://pantry.dev | bash
+panx @stacksjs/buddy new my-project
 cd my-project
 buddy dev
 ```
 
-## Resources
+Use `buddy list` and `buddy <command> --help` for the installed version’s command surface.
 
-- **Documentation**: [stacksjs.org](https://stacksjs.org)
-- **GitHub**: [github.com/stacksjs/stacks](https://github.com/stacksjs/stacks)
-- **Discord**: Community support and discussions
+## Next steps
 
-## Sponsors
+- [Get started with Stacks.js](/introduction/getting-started)
+- [Understand the protocol and framework boundary](/introduction/overview)
+- [Review the technical architecture](/architecture/)
+- [Read the full white paper](https://github.com/stacksjs/white-paper#readme)
+- [Inspect the reference source](https://github.com/stacksjs/stacks)
 
-Stacks is currently in Closed Beta (January 2026), with active development supported by sponsors including JetBrains and the Solana Foundation. Both the protocol specifications and reference implementation are open-source, licensed under MIT, and designed for adoption by indie developers, enterprise teams, and framework authors building on the Stacks protocol.
+The Stacks.js source is MIT-licensed. The white paper recommends publishing an explicit specification license before Protocol 1.0 ratification.
