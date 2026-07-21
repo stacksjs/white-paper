@@ -703,7 +703,96 @@ buddy dev
 
 The former `bunx buddy new` and `bunx stacks new` examples were removed because they do not match the supplied source’s current recommended path.
 
-### 9.2 Common loop
+### 9.2 Pantry package-manager boundary
+
+The Stacks toolchain recommendation is not a claim that Pantry is merely a
+bootstrap script or a synonym for npm. The paper pins Pantry
+[`v0.10.36`](https://github.com/pantry-pm/pantry/tree/v0.10.36) at commit
+[`a6bdc420`](https://github.com/pantry-pm/pantry/tree/a6bdc42071cc659896d1b9ff9d7ab6862c72954d).
+Its [complete package-manager contract](https://whitepaper.stacksjs.com/reference/package-manager)
+is copied, checksummed, and regenerated from that immutable source.
+
+Pantry resolves three distinct dependency classes:
+
+| Class | Source | Installed form |
+|---|---|---|
+| System tools and runtimes | generated Pantry recipe catalog plus `registry.pantry.dev` metadata | versioned native archives, binaries, shims, and environment links |
+| JavaScript packages | npm-compatible metadata | extracted dependency tree with resolved URL and integrity retained in `pantry.lock` |
+| Workspace/local packages | workspace manifests, `workspace:` ranges, and the local-link registry | linked or copied workspace package plus resolved external dependencies |
+
+Those sources are not interchangeable. npm fallback does not turn npm into the
+Pantry system-package registry, and a locally generated catalog entry is not
+proof that an arbitrary npm package can be installed as a native tool.
+
+The effective configuration order is explicit command option, project
+configuration/manifests, environment settings, then compiled defaults. A
+workspace root owns the lockfile. `pantry ci` requires frozen lock state;
+`--offline` forbids network resolution and must miss clearly when required bytes
+are absent; `--no-save` prevents manifest and lock writes; and `--force` refreshes
+resolution without implying persistence.
+
+The install pipeline is evidence-sensitive:
+
+1. discover the manifest/workspace and normalize requested specs;
+2. reuse compatible lock entries unless a refresh is requested;
+3. resolve the appropriate source and fetch through bounded cache/network paths;
+4. verify declared SHA-256/SHA-512/SHA-1 SRI or raw SHA-256 before extraction;
+5. fail closed on malformed or unsupported integrity claims;
+6. extract without permitting archive traversal outside the destination;
+7. link the dependency tree and write deterministic state only when saving is enabled;
+8. run lifecycle scripts only under the selected trust and `--ignore-scripts` policy.
+
+The native command contract includes install/CI, add/remove/update, inspection,
+deduplication, workspace linking, audit/search/info, core/npm/commit/binary
+publication, and signing/verification paths. The generated reference records
+every option, lockfile field, lifecycle boundary, publication channel, failure
+mode, and corresponding test file; the runtime `pantry <command> --help` remains
+authoritative for the installed build.
+
+### 9.3 Pantry registry boundary
+
+The [complete registry contract](https://whitepaper.stacksjs.com/reference/registry)
+is pinned beside the package-manager contract. The service has separate route
+families for Pantry/npm-compatible packages, commit-addressed previews,
+content-addressed Zig packages, PHP/Composer packages, native binaries/desktop
+artifacts/fonts, accounts/tokens, analytics, and build operations. Sharing one
+process does not give every route identical authentication or integrity semantics.
+
+Core and commit publication accept an operator token or a scoped `ptry_` API
+token where supported. Zig/PHP administrative mutation currently uses the
+operator-token boundary. Missing server token configuration fails closed, token
+comparison is timing-safe, and the Zig route reads the current environment so a
+rotation takes effect without re-importing the module. Publisher ownership is
+recorded for user tokens and enforced by account-level mutation paths.
+
+Publication validates normalized names and versions, metadata/body limits,
+content type, immutable duplicate keys, and a 50 MiB tarball ceiling. Stored bytes
+receive SHA-256 evidence and canonical proxy URLs. That digest proves which bytes
+were received; it does not substitute for publisher authentication or signing.
+Commit previews require a full commit identity, while Zig additionally provides
+content-addressed lookup.
+
+Storage is deliberately split:
+
+| Mode | Bytes | Metadata | Intended boundary |
+|---|---|---|---|
+| Local | `.registry` files or in-memory stores | JSON/in-memory | development and tests |
+| Object | S3-compatible AWS/Hetzner storage | checksummed object snapshots | portable production default |
+| AWS compatible | S3 | DynamoDB metadata/analytics tables | existing AWS deployments and migration |
+
+Operators must back up metadata and blobs consistently. Metadata without a
+tarball creates a visible but undownloadable version; a tarball without metadata
+is unreachable. `NPM_FALLBACK=false` makes a Pantry miss local. When enabled,
+fallback is read-only: it does not silently publish npm packages into Pantry, and
+external tarball URLs must pass HTTPS and private-host/SSRF checks.
+
+The evidence lock includes the canonical contracts, checker and checker tests,
+Zig route implementation and HTTP tests, native integrity pipeline, and the CI
+workflow that gates all Bun tests and `zig build test`. Whitepaper CI hashes every
+copied artifact and regenerates both reference pages; upstream behavior changes
+therefore require an intentional evidence refresh.
+
+### 9.4 Common loop
 
 ```bash
 buddy dev                    # start development services

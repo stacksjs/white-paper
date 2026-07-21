@@ -210,143 +210,31 @@ buddy build
 buddy deploy
 ```
 
-## Project Environment Management (Pantry)
+## Project environment management (Pantry)
 
-Stacks integrates with **Pantry** (also known as Launchpad), a modern package manager that automatically handles project dependencies and creates isolated development environments. Think of it as Homebrew meets nvm meets Docker—but faster and simpler.
+Stacks uses Pantry to provision its declared native toolchain and run `panx`.
+Pantry is a separate project with its own versioned behavior; Stacks does not
+redefine its resolution, lockfile, integrity, lifecycle, registry, or storage
+semantics. This whitepaper pins the complete [package-manager contract](/reference/package-manager)
+and [registry contract](/reference/registry) from Pantry `v0.10.36`.
 
-### Automatic Environment Activation
-
-When you `cd` into a Stacks project, Pantry automatically:
-
-1. Detects the project's `dependencies.yaml`
-2. Installs required tools if missing
-3. Activates the project-specific environment
-4. Sets environment variables
-5. Starts required services (databases, caches)
-
-```bash
-# Shell integration (add to .zshrc or .bashrc)
-eval "$(pantry dev:shellcode)"
-
-# Now environments activate automatically
-cd my-stacks-project
-# ✓ Activated environment: my-stacks-project
-# ✓ Node 22.1.0, Bun 1.2.0, TypeScript 5.7.0
-# ✓ Started services: postgres, redis
-```
-
-### Project Dependencies
-
-Define project dependencies in `dependencies.yaml`:
-
-```yaml
-# dependencies.yaml
-dependencies:
-  - node@22
-  - bun@1.2
-  - typescript@5.7
-  - python@3.12  # If needed for tooling
-
-env:
-  NODE_ENV: development
-  DATABASE_URL: postgres://localhost:5432/myapp
-
-services:
-  enabled: true
-  autoStart:
-    - postgres
-    - redis
-```
-
-### Per-Project Isolation
-
-Each project gets its own isolated environment:
-
-```yaml
-# Project A: dependencies.yaml
-dependencies:
-  - node@20
-  - typescript@5.0
-
-# Project B: dependencies.yaml
-dependencies:
-  - node@22
-  - typescript@5.7
-```
-
-Switching between projects is instant (sub-millisecond) with no conflicts—each project uses its specified versions without affecting the system or other projects.
-
-### Service Management
-
-Pantry includes 30+ pre-configured services:
-
-```bash
-# Start services
-pantry service start postgres redis
-
-# Check status
-pantry service status
-# postgres: running (port 5432)
-# redis: running (port 6379)
-
-# Stop when done
-pantry service stop postgres redis
-```
-
-**Available services include:**
-
-| Category | Services |
-|----------|----------|
-| Databases | PostgreSQL, MySQL, MongoDB, Redis, InfluxDB, CockroachDB |
-| Web Servers | Nginx, Caddy |
-| Message Queues | Kafka, RabbitMQ, NATS, Apache Pulsar |
-| Monitoring | Prometheus, Grafana, Jaeger |
-| Development | LocalStack, Verdaccio, Jenkins |
-| Infrastructure | Vault, Consul, etcd, MinIO |
-
-### Pantry CLI Commands
-
-```bash
-# Installation
-pantry install node@22 bun@1.2    # Install packages
-pantry remove node                 # Remove packages
-pantry update                      # Update all packages
-
-# Environment management
-pantry dev:on                      # Activate environment
-pantry env:list                    # List all environments
-pantry env:clean                   # Clean unused environments
-
-# Services
-pantry service start postgres      # Start a service
-pantry service stop postgres       # Stop a service
-pantry service restart postgres    # Restart a service
-pantry service list                # List all services
-
-# System setup
-pantry bootstrap                   # Initial system setup
-```
-
-### Comparison with Alternatives
-
-| Feature | Pantry | Homebrew | nvm/pyenv | Docker |
-|---------|--------|----------|-----------|--------|
-| Speed | Sub-ms switching | Slow | Medium | Slow startup |
-| Project isolation | Automatic | None | Manual | Full |
-| Service management | Built-in | No | No | Yes |
-| Cross-platform | Yes | macOS/Linux | Yes | Yes |
-| Native performance | Yes | Yes | Yes | No (VM) |
-| PATH management | Automatic | Manual | Manual | N/A |
+Pantry distinguishes system/runtime packages, npm-compatible JavaScript
+packages, and workspace/local packages. Inspect the generated catalog and
+registry rather than relying on a static service or package list copied into
+Stacks documentation.
 
 ### Integration with Stacks
 
-When creating a new Stacks project, dependencies are automatically configured:
+Use the versions pinned by the project and inspect the installed commands:
 
 ```bash
 panx @stacksjs/buddy new my-project
 cd my-project
+pantry --help
 buddy doctor
 buddy dev
 ```
 
-Use the Pantry and Stacks versions pinned by the project. Installation paths and package-manager coexistence are platform details; inspect `pantry doctor` rather than assuming a fixed prefix.
+Installation paths, shell activation, and package-manager coexistence are
+platform details. Use Pantry diagnostics rather than assuming a fixed prefix,
+automatic service behavior, or a command copied from an older release.
