@@ -44,8 +44,8 @@ jobs:
           bun run evidence:check
           bun run build
 
-      # Provide the provider credentials your config needs as repo secrets.
-      - run: bunx --bun @stacksjs/ts-cloud deploy --env 'production' --site 'whitepaper' --skip-dns-verification --yes
+      - name: Deploy production through ts-cloud
+        run: bun run deploy:ci
         env:
           HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
           HETZNER_API_TOKEN: ${{ secrets.HETZNER_API_TOKEN }}
