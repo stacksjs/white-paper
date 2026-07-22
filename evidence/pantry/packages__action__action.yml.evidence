@@ -1,0 +1,119 @@
+name: Setup Pantry
+description: Install pantry package manager from pre-built binaries
+author: home-lang
+
+branding:
+  icon: package
+  color: blue
+
+inputs:
+  version:
+    description: Pantry version to install (e.g. "0.8.3"). Defaults to "latest".
+    required: false
+    default: latest
+  packages:
+    description: Space-separated list of packages to install after setup
+    required: false
+    default: ''
+  services:
+    description: Space-separated health-checked CI services to install and start (currently supports redis or redis@X.Y.Z)
+    required: false
+    default: ''
+  config-path:
+    description: Path to pantry config file
+    required: false
+    default: pantry.config.ts
+  install:
+    description: Run pantry install after setup (reads pantry.jsonc/package.json)
+    required: false
+    default: 'true'
+  publish:
+    description: Publish package to pantry registry. Set to "zig" for Zig packages (reads build.zig.zon) or "npm" for JS/TS packages.
+    required: false
+    default: ''
+  package-dir:
+    description: Directory to publish from. Useful for monorepos where build.zig.zon or package.json lives below the repository root.
+    required: false
+    default: ''
+  registry-url:
+    description: Pantry registry URL for publishing
+    required: false
+    default: 'https://registry.pantry.dev'
+  token:
+    description: Pantry registry token for publishing (e.g. from secrets.PANTRY_TOKEN). Exported as PANTRY_TOKEN and PANTRY_REGISTRY_TOKEN for subsequent steps.
+    required: false
+    default: ''
+  discord-webhook:
+    description: Discord webhook URL for release notifications. Sends a rich embed after successful publish.
+    required: false
+    default: ''
+  slack-webhook:
+    description: Slack webhook URL for release notifications. Sends a rich message after successful publish.
+    required: false
+    default: ''
+  notification-title:
+    description: Custom title for release notifications. Defaults to "{name}@{version} — Published".
+    required: false
+    default: ''
+  notification-mentions:
+    description: 'Discord role/user mentions or Slack user IDs to ping (e.g. "<@&ROLE_ID>" for Discord, "<@U12345>" for Slack)'
+    required: false
+    default: ''
+  release:
+    description: Create a GitHub release. Attaches files and extracts changelog.
+    required: false
+    default: 'false'
+  release-files:
+    description: 'Newline-separated glob patterns of files to attach. Use "auto" to package build output or "none" for a notes-only release.'
+    required: false
+    default: ''
+  release-tag:
+    description: Tag name for the release. Defaults to github.ref_name.
+    required: false
+    default: ''
+  release-make-latest:
+    description: 'Whether GitHub marks this release as latest: auto uses the highest stable semantic-version tag; true, false, and legacy map directly to GitHub.'
+    required: false
+    default: auto
+  release-draft:
+    description: Create a draft release
+    required: false
+    default: 'false'
+  release-prerelease:
+    description: Mark release as prerelease
+    required: false
+    default: 'false'
+  release-notes:
+    description: Custom release notes (used if changelog extraction finds nothing)
+    required: false
+    default: ''
+  release-changelog:
+    description: 'Release notes source. A file path extracts the tag''s section from it (default CHANGELOG.md); "auto" generates the notes from git history with logsmith (previous tag → this tag).'
+    required: false
+    default: CHANGELOG.md
+  release-checksums:
+    description: Generate a checksums.txt manifest over the release files and attach it. Set to "true" (sha256) or a named algorithm (e.g. "sha512").
+    required: false
+    default: ''
+  release-token:
+    description: GitHub token for creating releases. Defaults to GITHUB_TOKEN.
+    required: false
+    default: ''
+
+outputs:
+  pantry-path:
+    description: Path to the installed pantry binary
+  version:
+    description: The version of pantry that was installed
+  release-url:
+    description: URL of the created GitHub release (when release is enabled)
+  redis-url:
+    description: Loopback Redis URL when the redis service is requested
+  redis-version:
+    description: Running Redis version when the redis service is requested
+
+runs:
+  using: node24
+  main: dist/index.js
+  post: dist/post.js
+  post-if: always()

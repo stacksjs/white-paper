@@ -22,4 +22,27 @@ describe('Pantry evidence lock', () => {
   it('uses an explicit SHA-256 digest format', () => {
     expect(hash('pantry')).toMatch(/^sha256:[a-f0-9]{64}$/)
   })
+
+  it('pins the complete Redis lifecycle and its executable checks', () => {
+    const sources = Object.values(lock.files).map(file => file.source)
+    expect(sources).toEqual(expect.arrayContaining([
+      'packages/action/action.yml',
+      'packages/action/src/services.ts',
+      'packages/action/src/services.test.ts',
+      'packages/action/src/index.ts',
+      'packages/action/src/post.ts',
+      'packages/zig/src/cli/commands/services.zig',
+      'packages/zig/src/services/definitions.zig',
+    ]))
+    expect(lock.verification.actionTests).toMatch(/passed, 0 failed/)
+    expect(lock.verification.actionRedisService).toContain('Redis 8.8.0')
+  })
+
+  it('renders a source-pinned Redis consumer contract', () => {
+    const page = readFileSync(resolve(root, 'docs/reference/pantry-redis.md'), 'utf8')
+    expect(page).toContain(`uses: pantry-pm/pantry/packages/action@${lock.revision}`)
+    expect(page).toContain(`version: '${lock.version}'`)
+    expect(page).toContain('A failed setup never converts to a')
+    expect(page).toContain('Pantry issue 211')
+  })
 })
