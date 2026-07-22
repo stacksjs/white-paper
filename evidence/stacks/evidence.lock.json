@@ -1,11 +1,12 @@
 {
   "stacksRepository": "https://github.com/stacksjs/stacks",
-  "evidenceRevision": "b01f111a0b6ab3b9ec68d18037b5244254f7cdcc",
+  "evidenceRevision": "6008859d6e3d75e115261d6b7de76826324788da",
   "sourceRevision": "bf1245e336ab14551e22cb7d88284f93e649a1a2",
   "files": {
     "source-manifest.json": "sha256:3c0daa9c970609f12fe4e4c112277735ef57d848dda5b2b7545deaa71fa77619",
     "drivers.json": "sha256:e01cb8d179744b5736b346e4cf958ef71fbe5f76bb00245e28cd0412082a3eb7",
     "desktop-support.json": "sha256:03cb87870265241b381ee9931cd0e277521e362b77029587d16ce921d4df8b11",
-    "suite.lock.json": "sha256:197996dbcfab27271f164b20253940bafae4d5f0393f420d583e7a2250cb01a0"
+    "suite.lock.json": "sha256:197996dbcfab27271f164b20253940bafae4d5f0393f420d583e7a2250cb01a0",
+    "ai-context.ts.evidence": "sha256:777bce5622e8c13fb0482564cdd8eb097b19e7fe3fb7820c5d1a34ace321ef41"
   }
 }

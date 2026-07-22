@@ -1,12 +1,12 @@
 {
   "pantryRepository": "https://github.com/pantry-pm/pantry",
-  "revision": "d738d5fd2e543e3b8380e5fbd5d01ba8936c1790",
-  "tag": "v0.10.47",
-  "version": "0.10.47",
+  "revision": "f1cc9159b6a944d93fe401ed614cb61520ed6871",
+  "tag": "v0.10.48",
+  "version": "0.10.48",
   "files": {
     "package-manager.md": {
       "source": "docs/package-manager.md",
-      "sha256": "sha256:03bab0e0373e2405a4f0656745786702a19c3b3a0ffb9be09ca0931f85a5158e"
+      "sha256": "sha256:2059dd6a524d48bbfe2d5999db848be96e8054b209b16314c4bb22b08ca651bb"
     },
     "registry.md": {
       "source": "docs/registry.md",
@@ -46,7 +46,7 @@
     },
     "packages__zig__src__install__installer.zig.evidence": {
       "source": "packages/zig/src/install/installer.zig",
-      "sha256": "sha256:95958122a1ece28c2d5713546bffb18b1930ed26fd2b30e3290a7956e476ddfb"
+      "sha256": "sha256:07fd3712a6c2112f5ca9710cf167920f12940239a04dcdbe901afd56890dad89"
     },
     "packages__zig__src__install__pipeline.zig.evidence": {
       "source": "packages/zig/src/install/pipeline.zig",

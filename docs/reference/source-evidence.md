@@ -11,7 +11,7 @@ conformance.
 
 | Evidence | Immutable revision |
 | --- | --- |
-| Evidence-producing Stacks commit | [`b01f111a0b6ab3b9ec68d18037b5244254f7cdcc`](https://github.com/stacksjs/stacks/tree/b01f111a0b6ab3b9ec68d18037b5244254f7cdcc) |
+| Evidence-producing Stacks commit | [`6008859d6e3d75e115261d6b7de76826324788da`](https://github.com/stacksjs/stacks/tree/6008859d6e3d75e115261d6b7de76826324788da) |
 | Audited Stacks source tree | [`bf1245e336ab14551e22cb7d88284f93e649a1a2`](https://github.com/stacksjs/stacks/tree/bf1245e336ab14551e22cb7d88284f93e649a1a2) |
 | RFC repository | [`cda56fb8f967ca9f7522b119425a3f438f7f2fe9`](https://github.com/stacksjs/rfcs/tree/cda56fb8f967ca9f7522b119425a3f438f7f2fe9) |
 | Source digest | `sha256:2d2f35689576a8d546acd5f13c69029aeb6609bca7506b953271d8f03c82ee8e` |
@@ -66,6 +66,17 @@ across database, queue, cache, storage, mail, realtime, and deployment.
 or parity evidence, “experimental” lacks a compatibility commitment or complete
 matrix, and “unsupported” must fail loudly. Service versions and CI-run URLs belong
 in per-run conformance reports rather than this static inventory.
+
+## AI authoring context
+
+The evidence revision includes Stacks.js's deterministic
+[`buddy ai:context`](https://github.com/stacksjs/stacks/blob/6008859d6e3d75e115261d6b7de76826324788da/storage/framework/core/ai/src/context.ts)
+contract. It summarizes application intent, conventions, scripts, dependency
+names, and representative source paths within an explicit character budget.
+Dependency trees, lockfiles, build output, caches, environment files, credentials,
+and private keys are excluded. The emitted token estimate is a transparent
+character heuristic for comparing prompt size, not a tokenizer bill, correctness
+score, or performance benchmark.
 
 ## Environment encryption
 

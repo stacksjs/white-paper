@@ -5,17 +5,17 @@ description: Source-pinned route, authentication, integrity, storage, fallback, 
 
 # Pantry registry
 
-This reference is reproduced from Pantry [`v0.10.47`](https://github.com/pantry-pm/pantry/tree/v0.10.47)
-at immutable commit [`d738d5fd2e543e3b8380e5fbd5d01ba8936c1790`](https://github.com/pantry-pm/pantry/tree/d738d5fd2e543e3b8380e5fbd5d01ba8936c1790).
+This reference is reproduced from Pantry [`v0.10.48`](https://github.com/pantry-pm/pantry/tree/v0.10.48)
+at immutable commit [`f1cc9159b6a944d93fe401ed614cb61520ed6871`](https://github.com/pantry-pm/pantry/tree/f1cc9159b6a944d93fe401ed614cb61520ed6871).
 The copied contract and its executable evidence are checksummed in
 [`evidence/pantry/evidence.lock.json`](https://github.com/stacksjs/white-paper/blob/main/evidence/pantry/evidence.lock.json).
 Stacks relies on this boundary; it does not redefine Pantry behavior.
 
 | Provenance | Value |
 | --- | --- |
-| Pantry release | `0.10.47` / `v0.10.47` |
-| Pantry commit | [`d738d5fd2e543e3b8380e5fbd5d01ba8936c1790`](https://github.com/pantry-pm/pantry/tree/d738d5fd2e543e3b8380e5fbd5d01ba8936c1790) |
-| Upstream contract | [`docs/registry.md`](https://github.com/pantry-pm/pantry/blob/d738d5fd2e543e3b8380e5fbd5d01ba8936c1790/docs/registry.md) |
+| Pantry release | `0.10.48` / `v0.10.48` |
+| Pantry commit | [`f1cc9159b6a944d93fe401ed614cb61520ed6871`](https://github.com/pantry-pm/pantry/tree/f1cc9159b6a944d93fe401ed614cb61520ed6871) |
+| Upstream contract | [`docs/registry.md`](https://github.com/pantry-pm/pantry/blob/f1cc9159b6a944d93fe401ed614cb61520ed6871/docs/registry.md) |
 | Contract digest | `sha256:c16a2ef8855d99b34398bddfd6f574e0e3001ce8a769dc6dd6792af418c4724b` |
 | Documentation check | `bun run docs:contracts:check (54 source-linked markers)` |
 | Targeted HTTP/contract tests | `16 passed, 0 failed` |

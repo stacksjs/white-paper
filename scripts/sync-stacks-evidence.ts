@@ -18,7 +18,14 @@ const sourceFiles = [
   'protocol/evidence/drivers.json',
   'protocol/evidence/desktop-support.json',
   'protocol/suite.lock.json',
+  'storage/framework/core/ai/src/context.ts',
 ]
+
+function evidenceName(sourcePath: string): string {
+  if (sourcePath.endsWith('suite.lock.json')) return 'suite.lock.json'
+  if (sourcePath.endsWith('/ai/src/context.ts')) return 'ai-context.ts.evidence'
+  return sourcePath.split('/').pop()!
+}
 
 function hash(data: Buffer | string): string {
   return `sha256:${createHash('sha256').update(data).digest('hex')}`
@@ -100,6 +107,17 @@ or parity evidence, “experimental” lacks a compatibility commitment or compl
 matrix, and “unsupported” must fail loudly. Service versions and CI-run URLs belong
 in per-run conformance reports rather than this static inventory.
 
+## AI authoring context
+
+The evidence revision includes Stacks.js's deterministic
+[\`buddy ai:context\`](https://github.com/stacksjs/stacks/blob/${lock.evidenceRevision}/storage/framework/core/ai/src/context.ts)
+contract. It summarizes application intent, conventions, scripts, dependency
+names, and representative source paths within an explicit character budget.
+Dependency trees, lockfiles, build output, caches, environment files, credentials,
+and private keys are excluded. The emitted token estimate is a transparent
+character heuristic for comparing prompt size, not a tokenizer bill, correctness
+score, or performance benchmark.
+
 ## Environment encryption
 
 The pinned source writes the experimental \`encrypted:v2\` envelope proposed in
@@ -136,7 +154,7 @@ function writeEvidence(sourceRepository: string): void {
   const files: Record<string, string> = {}
   for (const sourcePath of sourceFiles) {
     const contents = readFileSync(resolve(sourceRepository, sourcePath))
-    const targetName = sourcePath.endsWith('suite.lock.json') ? 'suite.lock.json' : sourcePath.split('/').pop()!
+    const targetName = evidenceName(sourcePath)
     writeFileSync(resolve(evidenceRoot, targetName), contents)
     files[targetName] = hash(contents)
   }
