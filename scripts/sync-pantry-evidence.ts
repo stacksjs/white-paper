@@ -36,8 +36,13 @@ const sourceFiles = [
   'scripts/docs-contracts.test.ts',
   'packages/registry/src/zig-routes.ts',
   'packages/registry/src/zig-routes.test.ts',
+  'packages/ts-pantry/src/installer.ts',
+  'packages/ts-pantry/test/installer-version.test.ts',
   'packages/zig/src/cli/commands/package.zig',
+  'packages/zig/src/install/downloader.zig',
+  'packages/zig/src/install/installer.zig',
   'packages/zig/src/install/pipeline.zig',
+  'packages/zig/src/packages/semver.zig',
   'packages/action/action.yml',
   'packages/action/README.md',
   'packages/action/src/services.ts',
@@ -253,17 +258,18 @@ Service availability alone does not prove either driver contract.
 
 function verifySource(repository: string): PantryEvidenceLock['verification'] {
   run(repository, ['bun', 'run', 'docs:contracts:check'])
-  run(repository, ['bun', 'test', './scripts/docs-contracts.test.ts', './packages/registry/src/zig-routes.test.ts'])
+  run(repository, ['bun', 'test', './scripts/docs-contracts.test.ts', './packages/registry/src/zig-routes.test.ts', './packages/ts-pantry/test/installer-version.test.ts'])
   run(repository, ['bun', 'test', './packages/action/src'])
   run(repository, ['bun', 'run', 'typecheck'])
+  run(resolve(repository, 'packages/zig'), ['zig', 'test', 'src/packages/semver.zig'])
   run(resolve(repository, 'packages/zig'), ['zig', 'build', 'test'])
   return {
     documentationContracts: 'bun run docs:contracts:check (54 source-linked markers)',
-    targetedBunTests: '12 passed, 0 failed',
+    targetedBunTests: '16 passed, 0 failed',
     actionTests: '44 passed, 0 failed',
     actionRedisService: 'Pantry CI action-redis-service (Redis 8.8.0 install, health, round trip, outputs, cleanup)',
     typecheck: 'bun run typecheck',
-    zigTests: 'zig build test',
+    zigTests: '29 semver tests passed; zig build test completed 32/32 steps',
   }
 }
 

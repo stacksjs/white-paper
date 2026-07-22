@@ -1,0 +1,807 @@
+const std = @import("std");
+const io_helper = @import("../io_helper.zig");
+const lib = @import("../lib.zig");
+const style = @import("../cli/style.zig");
+
+pub const DownloadError = error{
+    HttpRequestFailed,
+    PaymentRequired,
+    InvalidUrl,
+    FileWriteFailed,
+    NetworkError,
+    MaxRetriesExceeded,
+    ChecksumMismatch,
+};
+
+pub const DownloadOptions = struct {
+    max_retries: u32 = 3,
+    initial_retry_delay_ms: u64 = 1000,
+};
+
+/// Format bytes to human readable format (e.g., "12.3 MB")
+fn formatBytes(bytes: u64, buf: []u8) ![]const u8 {
+    if (bytes == 0) {
+        return std.fmt.bufPrint(buf, "0 B", .{});
+    }
+
+    const k: f64 = 1024.0;
+    const sizes = [_][]const u8{ "B", "KB", "MB", "GB", "TB" };
+
+    // Calculate the appropriate unit (with safety for edge cases)
+    const bytes_f = @as(f64, @floatFromInt(bytes));
+    const log_val = @log(bytes_f) / @log(k);
+    const clamped = @max(0.0, @min(log_val, @as(f64, @floatFromInt(sizes.len - 1))));
+    const i = @as(usize, @intFromFloat(@floor(clamped)));
+    const size_idx = @min(i, sizes.len - 1);
+
+    const value = bytes_f / std.math.pow(f64, k, @as(f64, @floatFromInt(size_idx)));
+
+    return std.fmt.bufPrint(buf, "{d:.1} {s}", .{ value, sizes[size_idx] });
+}
+
+/// Format speed (bytes per second)
+fn formatSpeed(bytes_per_sec: u64, buf: []u8) ![]const u8 {
+    var size_buf: [64]u8 = undefined;
+    const size_str = try formatBytes(bytes_per_sec, &size_buf);
+    return std.fmt.bufPrint(buf, "{s}/s", .{size_str});
+}
+
+/// Download a file from a URL to a destination path with progress
+pub fn downloadFile(allocator: std.mem.Allocator, url: []const u8, dest_path: []const u8) !void {
+    return downloadFileWithOptions(allocator, url, dest_path, false, null);
+}
+
+/// Download a file from a URL to a destination path with optional quiet mode
+pub fn downloadFileQuiet(allocator: std.mem.Allocator, url: []const u8, dest_path: []const u8, quiet: bool) !void {
+    return downloadFileWithOptions(allocator, url, dest_path, quiet, null);
+}
+
+/// Download progress callback options for inline progress display
+pub const InlineProgressOptions = struct {
+    line_offset: usize, // How many lines up from current position
+    total_deps: usize, // Total number of dependencies
+    pkg_name: []const u8, // Package name to display
+    pkg_version: []const u8, // Package version to display
+};
+
+/// Download with inline progress (updates a specific line instead of new lines)
+pub fn downloadFileInline(allocator: std.mem.Allocator, url: []const u8, dest_path: []const u8, progress_opts: InlineProgressOptions) !void {
+    return downloadFileWithOptions(allocator, url, dest_path, false, progress_opts);
+}
+
+fn downloadFileWithOptions(allocator: std.mem.Allocator, url: []const u8, dest_path: []const u8, quiet: bool, inline_progress: ?InlineProgressOptions) !void {
+    // Validate URL format
+    if (!std.mem.startsWith(u8, url, "http://") and !std.mem.startsWith(u8, url, "https://")) {
+        style.printInvalidUrl(url);
+        return error.InvalidUrl;
+    }
+
+    // The pantry registry 302-redirects binary tarballs to presigned object-storage
+    // URLs (Hetzner / S3). The native Zig HTTP client mishandles that redirect chain:
+    // it returns status 200 but streams corrupt bytes (no truncation signal, so the
+    // size check below never trips), which then fails checksum verification. curl
+    // follows the presigned redirect correctly, so use it directly for registry
+    // downloads. We lose the live progress bar for these, but correctness wins.
+    if (std.mem.indexOf(u8, url, "registry.pantry.dev") != null) {
+        return downloadFileWithCurl(allocator, url, dest_path, quiet);
+    }
+
+    // Native Zig HTTP download with TLS. Falls back to curl on connection failure.
+    var stream = io_helper.httpStreamGet(allocator, url) catch {
+        return downloadFileWithCurl(allocator, url, dest_path, quiet);
+    };
+    defer stream.deinit();
+
+    const total_bytes = stream.contentLength();
+
+    // Create output file
+    const file = io_helper.cwd().createFile(io_helper.io, dest_path, .{}) catch return error.FileWriteFailed;
+    defer file.close(io_helper.io);
+
+    // Perf: 128KB file write buffer + 64KB transfer buffer for better throughput
+    var file_buf: [131072]u8 = undefined;
+    var file_writer = file.writerStreaming(io_helper.io, &file_buf);
+
+    // Stream response body to file with progress tracking
+    var transfer_buf: [65536]u8 = undefined;
+    const body_reader = stream.reader(&transfer_buf);
+
+    const start_ts = io_helper.clockGettime();
+    const start_ms = @as(i64, @intCast(start_ts.sec)) * 1000 + @divFloor(@as(i64, @intCast(start_ts.nsec)), 1_000_000);
+    var bytes_downloaded: u64 = 0;
+    var last_update_ms: i64 = start_ms;
+    var shown_progress = false;
+
+    while (true) {
+        const n = body_reader.stream(&file_writer.interface, .unlimited) catch |err| switch (err) {
+            error.EndOfStream => break,
+            else => {
+                // Native HTTP stream failed mid-download — close file and fall back to curl
+                file_writer.flush() catch {};
+                return downloadFileWithCurl(allocator, url, dest_path, quiet);
+            },
+        };
+        bytes_downloaded += n;
+
+        // Update progress display (skip if quiet mode or CI)
+        if (!quiet and !style.isCI()) {
+            const now_ts = io_helper.clockGettime();
+            const now_ms = @as(i64, @intCast(now_ts.sec)) * 1000 + @divFloor(@as(i64, @intCast(now_ts.nsec)), 1_000_000);
+
+            if (now_ms - last_update_ms >= 100) {
+                if (inline_progress) |opts| {
+                    // Inline progress: update the package line
+                    const lines_up = if (opts.total_deps > opts.line_offset) opts.total_deps - opts.line_offset else 0;
+                    var current_buf: [32]u8 = undefined;
+                    const current_str = formatBytes(bytes_downloaded, &current_buf) catch "?";
+
+                    style.moveUp(lines_up);
+                    style.clearLine();
+                    if (total_bytes) |total| {
+                        var total_buf: [32]u8 = undefined;
+                        const total_str = formatBytes(total, &total_buf) catch "?";
+                        style.print("{s}+{s} {s}@{s}{s}{s} {s}({s}/{s}){s}\n", .{
+                            style.dim,     style.reset,
+                            opts.pkg_name, style.dim,
+                            style.italic,  opts.pkg_version,
+                            style.dim,     current_str,
+                            total_str,     style.reset,
+                        });
+                    } else {
+                        style.print("{s}+{s} {s}@{s}{s}{s} {s}({s}){s}\n", .{
+                            style.dim,     style.reset,
+                            opts.pkg_name, style.dim,
+                            style.italic,  opts.pkg_version,
+                            style.dim,     current_str,
+                            style.reset,
+                        });
+                    }
+                    if (opts.total_deps > 0 and opts.line_offset < opts.total_deps - 1 and lines_up > 0) {
+                        style.moveDown(lines_up - 1);
+                    }
+                } else {
+                    // Standard progress line
+                    var current_buf: [32]u8 = undefined;
+                    const current_str = formatBytes(bytes_downloaded, &current_buf) catch "?";
+                    const elapsed_sec = @as(f64, @floatFromInt(now_ms - start_ms)) / 1000.0;
+
+                    if (elapsed_sec > 0.1) {
+                        const speed = @as(f64, @floatFromInt(bytes_downloaded)) / elapsed_sec;
+                        var speed_buf: [32]u8 = undefined;
+                        const speed_str = formatSpeed(@intFromFloat(speed), &speed_buf) catch null;
+
+                        const total_str: ?[]const u8 = if (total_bytes) |total| blk: {
+                            var tbuf: [32]u8 = undefined;
+                            break :blk formatBytes(total, &tbuf) catch null;
+                        } else null;
+
+                        style.printDownloadProgress(current_str, total_str, speed_str, !shown_progress);
+                        if (!shown_progress) shown_progress = true;
+                    } else {
+                        style.printDownloadProgress(current_str, null, null, !shown_progress);
+                        if (!shown_progress) shown_progress = true;
+                    }
+                }
+                last_update_ms = now_ms;
+            }
+        }
+    }
+
+    // Flush remaining buffered data to disk
+    file_writer.flush() catch return error.FileWriteFailed;
+
+    // Verify download completeness: if Content-Length was provided, check downloaded bytes match
+    if (total_bytes) |expected| {
+        if (bytes_downloaded != expected) {
+            // Truncated download — fall back to curl
+            return downloadFileWithCurl(allocator, url, dest_path, quiet);
+        }
+    }
+
+    // Clear progress line (let caller print final status)
+    if (!quiet and shown_progress) {
+        style.clearLine();
+    }
+}
+
+/// Download using curl subprocess — reliable across all platforms and CI environments.
+fn downloadFileWithCurl(allocator: std.mem.Allocator, url: []const u8, dest_path: []const u8, _: bool) !void {
+    // Try curl with different paths and methods
+    const curl_paths = [_][]const u8{ "/usr/bin/curl", "curl" };
+
+    // Method 1: try std.process.run (captures stdout/stderr via pipes)
+    for (curl_paths) |curl| {
+        const args = [_][]const u8{ curl, "-fsSL", "--connect-timeout", "30", "--retry", "3", "--max-time", "300", "-o", dest_path, url };
+
+        const result = io_helper.childRun(allocator, &args) catch {
+            continue;
+        };
+        defer allocator.free(result.stdout);
+        defer allocator.free(result.stderr);
+
+        const curl_failed = switch (result.term) {
+            .exited => |code| code != 0,
+            else => true,
+        };
+        if (curl_failed) {
+            continue;
+        }
+        return;
+    }
+
+    // Method 2: retry with childRun (piped output, no stdio leak)
+    for (curl_paths) |curl| {
+        const args = [_][]const u8{ curl, "-fsL", "--connect-timeout", "30", "--retry", "3", "--max-time", "300", "-o", dest_path, url };
+        const result = io_helper.childRun(allocator, &args) catch continue;
+        defer allocator.free(result.stdout);
+        defer allocator.free(result.stderr);
+
+        const curl2_ok = switch (result.term) {
+            .exited => |code| code == 0,
+            else => false,
+        };
+        if (curl2_ok) {
+            return;
+        }
+    }
+
+    return error.NetworkError;
+}
+
+/// Check if a version string looks like a Zig dev version
+pub fn isZigDevVersion(version: []const u8) bool {
+    // Dev versions look like: 0.16.0-dev.1484+d0ba6642b, 0.14.0-dev.2851+b074a1eb8, or 0.16.0-dev
+    return std.mem.indexOf(u8, version, "-dev") != null;
+}
+
+/// Check if a version is a short dev specifier (e.g. "0.16.0-dev") that needs resolution
+fn isShortDevVersion(version: []const u8) bool {
+    return std.mem.endsWith(u8, version, "-dev");
+}
+
+/// Resolve a Zig version specifier to a concrete Pantry registry version.
+/// Handles:
+///   - "*" / "latest" → latest stable release (e.g. "0.15.2")
+///   - Short dev like "0.16.0-dev" → full dev version (e.g. "0.16.0-dev.1484+d0ba6642b")
+///   - Anything else → returned as-is
+pub fn resolveZigDevVersion(allocator: std.mem.Allocator, version: []const u8) ![]const u8 {
+    const semver = @import("../packages/semver.zig");
+    const is_wildcard = std.mem.eql(u8, version, "*") or std.mem.eql(u8, version, "latest");
+    const is_short_dev = isShortDevVersion(version);
+    const is_range = semver.isSemverRange(version);
+
+    if (!is_wildcard and !is_short_dev and !is_range) return allocator.dupe(u8, version);
+
+    if (lookupS3Registry(allocator, "ziglang.org", version)) |result| {
+        allocator.free(result.tarball_url);
+        return result.version;
+    }
+
+    return allocator.dupe(u8, version);
+}
+
+/// Parse "major.minor.patch" into numeric parts for comparison
+fn parseVersionParts(v: []const u8) [3]u32 {
+    var parts: [3]u32 = .{ 0, 0, 0 };
+    var i: usize = 0;
+    var it = std.mem.splitScalar(u8, v, '.');
+    while (it.next()) |seg| {
+        if (i >= 3) break;
+        parts[i] = std.fmt.parseInt(u32, seg, 10) catch 0;
+        i += 1;
+    }
+    return parts;
+}
+
+fn compareParts(a: [3]u32, b: [3]u32) std.math.Order {
+    for (0..3) |i| {
+        if (a[i] != b[i]) return std.math.order(a[i], b[i]);
+    }
+    return .eq;
+}
+
+/// Build the canonical Pantry registry URL for a mirrored Zig archive.
+pub fn buildZiglangUrl(
+    allocator: std.mem.Allocator,
+    version: []const u8,
+) ![]const u8 {
+    const platform = lib.Platform.current();
+    const platform_str = switch (platform) {
+        .darwin => "darwin",
+        .linux => "linux",
+        .windows => "windows",
+        .freebsd => "freebsd",
+    };
+
+    const arch = lib.Architecture.current();
+    const arch_str = switch (arch) {
+        .x86_64 => "x86-64",
+        .aarch64 => "arm64",
+    };
+
+    const ext = if (platform == .windows) "zip" else "tar.gz";
+    return std.fmt.allocPrint(
+        allocator,
+        "https://registry.pantry.dev/binaries/ziglang.org/{s}/{s}-{s}/ziglang.org-{s}.{s}",
+        .{ version, platform_str, arch_str, version, ext },
+    );
+}
+
+/// Build package download URL
+pub fn buildPackageUrl(
+    allocator: std.mem.Allocator,
+    domain: []const u8,
+    version: []const u8,
+    format: []const u8,
+) ![]const u8 {
+    const platform = lib.Platform.current();
+    const platform_str = switch (platform) {
+        .darwin => "darwin",
+        .linux => "linux",
+        .windows => "windows",
+        .freebsd => "freebsd",
+    };
+
+    const arch = lib.Architecture.current();
+    const arch_str = switch (arch) {
+        .x86_64 => "x86-64",
+        .aarch64 => "aarch64",
+    };
+
+    // pkgx uses format: https://dist.pkgx.dev/{domain}/{platform}/{arch}/v{version}.tar.xz
+    // Strip semver prefixes (^, ~, >=, etc.) and 'v' prefix
+    var clean_version = version;
+
+    // Strip semver constraint prefixes
+    if (std.mem.startsWith(u8, clean_version, "^") or
+        std.mem.startsWith(u8, clean_version, "~") or
+        std.mem.startsWith(u8, clean_version, "="))
+    {
+        clean_version = clean_version[1..];
+    } else if (std.mem.startsWith(u8, clean_version, ">=") or
+        std.mem.startsWith(u8, clean_version, "<="))
+    {
+        clean_version = clean_version[2..];
+    } else if (std.mem.startsWith(u8, clean_version, ">") or
+        std.mem.startsWith(u8, clean_version, "<"))
+    {
+        clean_version = clean_version[1..];
+    }
+
+    // Strip 'v' prefix if present
+    if (std.mem.startsWith(u8, clean_version, "v")) {
+        clean_version = clean_version[1..];
+    }
+
+    // If version is just a major version like "22", try with .0.0
+    const needs_full_version = std.mem.indexOf(u8, clean_version, ".") == null;
+    const full_version = if (needs_full_version)
+        try std.fmt.allocPrint(allocator, "{s}.0.0", .{clean_version})
+    else
+        clean_version;
+    defer if (needs_full_version) allocator.free(full_version);
+
+    return std.fmt.allocPrint(
+        allocator,
+        "https://dist.pkgx.dev/{s}/{s}/{s}/v{s}.{s}",
+        .{ domain, platform_str, arch_str, full_version, format },
+    );
+}
+
+/// S3 registry lookup result
+pub const S3PackageResult = struct {
+    tarball_url: []const u8,
+    version: []const u8,
+};
+
+fn zigDevBuildNumber(version: []const u8) ?u64 {
+    const marker = "-dev.";
+    const start = (std.mem.indexOf(u8, version, marker) orelse return null) + marker.len;
+    var end = start;
+    while (end < version.len and std.ascii.isDigit(version[end])) : (end += 1) {}
+    if (end == start) return null;
+    return std.fmt.parseInt(u64, version[start..end], 10) catch null;
+}
+
+/// Try to find a package tarball in the pantry S3 registry.
+/// Fetches metadata.json, resolves version constraint, returns download URL.
+/// Returns null if not found or on any error.
+pub fn lookupS3Registry(
+    allocator: std.mem.Allocator,
+    domain: []const u8,
+    version_constraint: []const u8,
+) ?S3PackageResult {
+    const semver = @import("../packages/semver.zig");
+
+    // Build metadata URL
+    var metadata_url_buf: [256]u8 = undefined;
+    const metadata_url = std.fmt.bufPrint(
+        &metadata_url_buf,
+        "https://registry.pantry.dev/binaries/{s}/metadata.json",
+        .{domain},
+    ) catch return null;
+
+    // Fetch metadata using curl subprocess (more reliable than Zig HTTP client)
+    // Try multiple curl paths for CI compatibility
+    const curl_paths = [_][]const u8{ "/usr/bin/curl", "curl" };
+    var metadata_response: []const u8 = "";
+    var curl_stderr: []const u8 = "";
+    var found_curl = false;
+
+    for (curl_paths) |curl_bin| {
+        const curl_result = io_helper.childRun(allocator, &[_][]const u8{
+            curl_bin, "-sfL", "--connect-timeout", "10", "--max-time", "30", metadata_url,
+        }) catch continue;
+
+        const s3_curl_failed = switch (curl_result.term) {
+            .exited => |code| code != 0,
+            else => true,
+        };
+        if (s3_curl_failed) {
+            allocator.free(curl_result.stdout);
+            allocator.free(curl_result.stderr);
+            continue;
+        }
+
+        metadata_response = curl_result.stdout;
+        curl_stderr = curl_result.stderr;
+        found_curl = true;
+        break;
+    }
+
+    if (!found_curl) {
+        // All curl paths failed — try native Zig HTTP as last resort
+        const native_response = io_helper.httpGet(allocator, metadata_url) catch return null;
+        if (native_response.len == 0) {
+            allocator.free(native_response);
+            return null;
+        }
+        metadata_response = native_response;
+    }
+    defer allocator.free(metadata_response);
+    defer if (found_curl) allocator.free(curl_stderr);
+
+    if (metadata_response.len == 0) return null;
+
+    // Parse metadata JSON
+    const parsed = std.json.parseFromSlice(std.json.Value, allocator, metadata_response, .{}) catch return null;
+    defer parsed.deinit();
+
+    const root = parsed.value;
+    if (root != .object) return null;
+
+    const versions_obj = root.object.get("versions") orelse return null;
+    if (versions_obj != .object) return null;
+
+    // Handle "latest" and "*" by picking the newest version available
+    const is_any = std.mem.eql(u8, version_constraint, "latest") or
+        std.mem.eql(u8, version_constraint, "*") or
+        version_constraint.len == 0;
+
+    // Parse the version constraint (skip if matching any)
+    const constraint = if (!is_any)
+        semver.parseConstraint(version_constraint) catch return null
+    else
+        undefined;
+
+    // Detect current platform
+    const platform = comptime blk: {
+        const os_str = switch (@import("builtin").os.tag) {
+            .macos => "darwin",
+            .linux => "linux",
+            else => "linux",
+        };
+        const arch_str = switch (@import("builtin").cpu.arch) {
+            .aarch64 => "arm64",
+            .x86_64 => "x86-64",
+            else => "x86-64",
+        };
+        break :blk os_str ++ "-" ++ arch_str;
+    };
+
+    // Find the best matching version that also has a tarball for this platform.
+    // Some packages have partial historical coverage; choosing a newer version
+    // first and only then checking platform would skip usable older releases.
+    var best_version: ?[]const u8 = null;
+    var best_parsed: ?semver.Version = null;
+    var best_platform_info: ?std.json.Value = null;
+    var it = versions_obj.object.iterator();
+    while (it.next()) |entry| {
+        const ver = entry.key_ptr.*;
+        if (!is_any and !semver.satisfiesConstraint(ver, constraint)) continue;
+
+        const version_info = entry.value_ptr.*;
+        if (version_info != .object) continue;
+        const platforms_obj = version_info.object.get("platforms") orelse continue;
+        if (platforms_obj != .object) continue;
+        const platform_info = platforms_obj.object.get(platform) orelse continue;
+        if (platform_info != .object) continue;
+
+        const parsed_ver = semver.parseVersion(ver) catch continue;
+        if (best_parsed) |best| {
+            // Compare: pick the newer version
+            const newer_dev = parsed_ver.major == best.major and
+                parsed_ver.minor == best.minor and
+                parsed_ver.patch == best.patch and
+                (zigDevBuildNumber(ver) orelse 0) > (zigDevBuildNumber(best_version.?) orelse 0);
+            if (newer_dev or parsed_ver.major > best.major or
+                (parsed_ver.major == best.major and parsed_ver.minor > best.minor) or
+                (parsed_ver.major == best.major and parsed_ver.minor == best.minor and parsed_ver.patch > best.patch))
+            {
+                best_version = ver;
+                best_parsed = parsed_ver;
+                best_platform_info = platform_info;
+            }
+        } else {
+            best_version = ver;
+            best_parsed = parsed_ver;
+            best_platform_info = platform_info;
+        }
+    }
+
+    const matched_version = best_version orelse return null;
+    const platform_info = best_platform_info orelse return null;
+
+    const tarball_path_val = platform_info.object.get("tarball") orelse return null;
+    const tarball_path = if (tarball_path_val == .string) tarball_path_val.string else return null;
+
+    // Download binary-registry artifacts via the registry proxy, which 302-
+    // redirects to a (presigned, for private buckets) object URL — so large
+    // prebuilt archives stream straight from object storage without being
+    // buffered through the registry process. `tarball_path` already carries the
+    // `binaries/...` prefix, so this resolves to registry.pantry.dev/binaries/…
+    const tarball_url = std.fmt.allocPrint(
+        allocator,
+        "https://registry.pantry.dev/{s}",
+        .{tarball_path},
+    ) catch return null;
+
+    const version_dupe = allocator.dupe(u8, matched_version) catch {
+        allocator.free(tarball_url);
+        return null;
+    };
+
+    return S3PackageResult{
+        .tarball_url = tarball_url,
+        .version = version_dupe,
+    };
+}
+
+test "zig dev build numbers compare numerically" {
+    try std.testing.expectEqual(@as(?u64, 1422), zigDevBuildNumber("0.17.0-dev.1422+e863bf3be"));
+    try std.testing.expectEqual(@as(?u64, 986), zigDevBuildNumber("0.17.0-dev.986_f3544a707"));
+    try std.testing.expectEqual(@as(?u64, null), zigDevBuildNumber("0.17.0"));
+}
+
+test "Zig prerelease ranges are resolved through registry metadata" {
+    const allocator = std.testing.allocator;
+    const resolved = try resolveZigDevVersion(allocator, "^0.17.0-dev");
+    defer allocator.free(resolved);
+    try std.testing.expect(std.mem.startsWith(u8, resolved, "0.17.0-dev."));
+    try std.testing.expect(!std.mem.eql(u8, resolved, "^0.17.0-dev"));
+}
+
+/// Try to find a package tarball published via `pantry publish` (packages/pantry/ prefix).
+/// This is the S3 path used by the standard `pantry publish` command.
+/// Returns null if not found or on any error.
+pub fn lookupPantryPublished(
+    allocator: std.mem.Allocator,
+    domain: []const u8,
+    version_constraint: []const u8,
+) ?S3PackageResult {
+    const semver = @import("../packages/semver.zig");
+    const pkg_registry = @import("../packages/generated.zig");
+
+    // Resolve domain → package name (e.g. craft-native.org → craft)
+    const pkg_info = pkg_registry.getPackageByDomain(domain);
+    const pkg_name = if (pkg_info) |info| info.name else domain;
+
+    // Also try the domain slug as fallback
+    var sanitized_buf: [256]u8 = undefined;
+    var slug_len: usize = 0;
+    for (domain) |c| {
+        if (slug_len >= sanitized_buf.len) break;
+        sanitized_buf[slug_len] = if (c == '/' or c == '@') '-' else c;
+        slug_len += 1;
+    }
+    const clean_name = if (slug_len > 0 and sanitized_buf[0] == '-') sanitized_buf[1..slug_len] else sanitized_buf[0..slug_len];
+    _ = clean_name; // May be used for fallback later
+
+    // Query registry API using package name (npm-style publish uses name, not domain)
+    const metadata_url = std.fmt.allocPrint(
+        allocator,
+        "https://registry.pantry.dev/packages/{s}",
+        .{pkg_name},
+    ) catch return null;
+    defer allocator.free(metadata_url);
+
+    // Fetch metadata
+    const metadata_response = io_helper.httpGet(allocator, metadata_url) catch return null;
+    defer allocator.free(metadata_response);
+
+    if (metadata_response.len == 0) return null;
+
+    // Parse metadata (this is the raw package.json content)
+    const parsed = std.json.parseFromSlice(std.json.Value, allocator, metadata_response, .{}) catch return null;
+    defer parsed.deinit();
+
+    const root = parsed.value;
+    if (root != .object) return null;
+
+    // Extract version from metadata
+    const version_str = if (root.object.get("version")) |v| (if (v == .string) v.string else return null) else return null;
+
+    // Check if the published version satisfies the constraint
+    const is_any = std.mem.eql(u8, version_constraint, "latest") or
+        std.mem.eql(u8, version_constraint, "*") or
+        version_constraint.len == 0;
+
+    if (!is_any) {
+        const constraint = semver.parseConstraint(version_constraint) catch return null;
+        if (!semver.satisfiesConstraint(version_str, constraint)) return null;
+    }
+
+    // Use the canonical tarball endpoint (always works via registry proxy)
+    const tarball_url = std.fmt.allocPrint(
+        allocator,
+        "https://registry.pantry.dev/packages/{s}/{s}/tarball",
+        .{ pkg_name, version_str },
+    ) catch return null;
+
+    const version_dupe = allocator.dupe(u8, version_str) catch {
+        allocator.free(tarball_url);
+        return null;
+    };
+
+    return S3PackageResult{
+        .tarball_url = tarball_url,
+        .version = version_dupe,
+    };
+}
+
+/// Verify file checksum (SHA256)
+pub fn verifyChecksum(
+    allocator: std.mem.Allocator,
+    file_path: []const u8,
+    expected_checksum: []const u8,
+) !bool {
+    // Read file contents
+    const contents = try io_helper.readFileAlloc(allocator, file_path, 1024 * 1024 * 1024);
+    defer allocator.free(contents);
+
+    // Compute SHA256 hash
+    var hash: [32]u8 = undefined;
+    std.crypto.hash.sha2.Sha256.hash(contents, &hash, .{});
+
+    // Convert to hex string
+    const hex_buf = std.fmt.bytesToHex(hash, .lower);
+    const hex = hex_buf[0..];
+
+    // Compare with expected
+    if (!std.mem.eql(u8, hex, expected_checksum)) {
+        style.printChecksumMismatch(expected_checksum, hex);
+        return error.ChecksumMismatch;
+    }
+
+    return true;
+}
+
+/// Download file and verify checksum
+pub fn downloadFileWithChecksum(
+    allocator: std.mem.Allocator,
+    url: []const u8,
+    dest_path: []const u8,
+    expected_checksum: ?[]const u8,
+) !void {
+    // Download file
+    try downloadFile(allocator, url, dest_path);
+
+    // Verify checksum if provided
+    if (expected_checksum) |checksum| {
+        style.printChecksum(true);
+        _ = try verifyChecksum(allocator, dest_path, checksum);
+        style.printChecksum(false);
+    }
+}
+
+/// Download a file with retry logic and exponential backoff
+pub fn downloadFileWithRetry(allocator: std.mem.Allocator, url: []const u8, dest_path: []const u8, options: DownloadOptions) !void {
+    var attempt: u32 = 0;
+    var delay_ms = options.initial_retry_delay_ms;
+
+    while (attempt < options.max_retries) {
+        attempt += 1;
+
+        if (attempt > 1) {
+            style.printRetry(attempt - 1, options.max_retries - 1, delay_ms);
+            io_helper.sleepMs(delay_ms);
+        }
+
+        downloadFile(allocator, url, dest_path) catch |err| {
+            if (attempt >= options.max_retries) {
+                style.printDownloadFailed(options.max_retries, err);
+                return error.MaxRetriesExceeded;
+            }
+
+            style.printDownloadAttemptFailed(attempt, err);
+
+            // Exponential backoff: double the delay each time
+            delay_ms *= 2;
+            continue;
+        };
+
+        // Success
+        return;
+    }
+
+    return error.MaxRetriesExceeded;
+}
+
+test "buildPackageUrl" {
+    const allocator = std.testing.allocator;
+
+    const url = try buildPackageUrl(allocator, "bun.sh", "1.0.0", "tar.gz");
+    defer allocator.free(url);
+
+    const platform = lib.Platform.current();
+    const arch = lib.Architecture.current();
+
+    if (platform == .darwin and arch == .aarch64) {
+        try std.testing.expectEqualStrings(
+            "https://dist.pkgx.dev/bun.sh/darwin/aarch64/v1.0.0.tar.gz",
+            url,
+        );
+    }
+}
+
+test "verifyChecksum" {
+    const allocator = std.testing.allocator;
+
+    // Create a test file
+    const test_file = "test_checksum.txt";
+    const test_content = "Hello, World!";
+
+    {
+        const file = try io_helper.cwd().createFile(io_helper.io, test_file, .{});
+        defer file.close(io_helper.io);
+        try io_helper.writeAllToFile(file, test_content);
+    }
+    defer io_helper.deleteFile(test_file) catch {};
+
+    // Expected SHA256 of "Hello, World!"
+    const expected = "dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f";
+
+    // Should pass with correct checksum
+    const valid = try verifyChecksum(allocator, test_file, expected);
+    try std.testing.expect(valid);
+
+    // Should fail with incorrect checksum
+    const wrong_checksum = "0000000000000000000000000000000000000000000000000000000000000000";
+    const result = verifyChecksum(allocator, test_file, wrong_checksum);
+    try std.testing.expectError(error.ChecksumMismatch, result);
+}
+
+test "parseVersionParts and compareParts" {
+    try std.testing.expectEqual(compareParts(parseVersionParts("1.2.3"), parseVersionParts("1.2.4")), .lt);
+    try std.testing.expectEqual(compareParts(parseVersionParts("2.0.0"), parseVersionParts("1.9.9")), .gt);
+    try std.testing.expectEqual(compareParts(parseVersionParts("1.0.0"), parseVersionParts("1.0.0")), .eq);
+}
+
+test "isZigDevVersion" {
+    try std.testing.expect(isZigDevVersion("0.16.0-dev.1484+d0ba6642b"));
+    try std.testing.expect(isZigDevVersion("0.16.0-dev"));
+    try std.testing.expect(isZigDevVersion("0.14.0-dev.2851+b074a1eb8"));
+    try std.testing.expect(!isZigDevVersion("0.15.2"));
+    try std.testing.expect(!isZigDevVersion("1.0.0"));
+    try std.testing.expect(!isZigDevVersion("0.16.0"));
+}
+
+test "Zig download URL always uses the Pantry registry" {
+    const allocator = std.testing.allocator;
+    const url = try buildZiglangUrl(allocator, "0.17.0-dev.1422+e863bf3be");
+    defer allocator.free(url);
+
+    try std.testing.expect(std.mem.startsWith(u8, url, "https://registry.pantry.dev/binaries/ziglang.org/"));
+    try std.testing.expect(std.mem.indexOf(u8, url, "ziglang.org/builds") == null);
+    try std.testing.expect(std.mem.indexOf(u8, url, "ziglang.org/download") == null);
+}

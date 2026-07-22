@@ -5,21 +5,21 @@ description: Source-pinned route, authentication, integrity, storage, fallback, 
 
 # Pantry registry
 
-This reference is reproduced from Pantry [`v0.10.43`](https://github.com/pantry-pm/pantry/tree/v0.10.43)
-at immutable commit [`c5e15260ccde34206082756a14d03e30cf1d7d5e`](https://github.com/pantry-pm/pantry/tree/c5e15260ccde34206082756a14d03e30cf1d7d5e).
+This reference is reproduced from Pantry [`v0.10.47`](https://github.com/pantry-pm/pantry/tree/v0.10.47)
+at immutable commit [`d738d5fd2e543e3b8380e5fbd5d01ba8936c1790`](https://github.com/pantry-pm/pantry/tree/d738d5fd2e543e3b8380e5fbd5d01ba8936c1790).
 The copied contract and its executable evidence are checksummed in
 [`evidence/pantry/evidence.lock.json`](https://github.com/stacksjs/white-paper/blob/main/evidence/pantry/evidence.lock.json).
 Stacks relies on this boundary; it does not redefine Pantry behavior.
 
 | Provenance | Value |
 | --- | --- |
-| Pantry release | `0.10.43` / `v0.10.43` |
-| Pantry commit | [`c5e15260ccde34206082756a14d03e30cf1d7d5e`](https://github.com/pantry-pm/pantry/tree/c5e15260ccde34206082756a14d03e30cf1d7d5e) |
-| Upstream contract | [`docs/registry.md`](https://github.com/pantry-pm/pantry/blob/c5e15260ccde34206082756a14d03e30cf1d7d5e/docs/registry.md) |
+| Pantry release | `0.10.47` / `v0.10.47` |
+| Pantry commit | [`d738d5fd2e543e3b8380e5fbd5d01ba8936c1790`](https://github.com/pantry-pm/pantry/tree/d738d5fd2e543e3b8380e5fbd5d01ba8936c1790) |
+| Upstream contract | [`docs/registry.md`](https://github.com/pantry-pm/pantry/blob/d738d5fd2e543e3b8380e5fbd5d01ba8936c1790/docs/registry.md) |
 | Contract digest | `sha256:c16a2ef8855d99b34398bddfd6f574e0e3001ce8a769dc6dd6792af418c4724b` |
 | Documentation check | `bun run docs:contracts:check (54 source-linked markers)` |
-| Targeted HTTP/contract tests | `12 passed, 0 failed` |
-| Native test graph | `zig build test` |
+| Targeted HTTP/contract tests | `16 passed, 0 failed` |
+| Native test graph | `29 semver tests passed; zig build test completed 32/32 steps` |
 
 The text below is the upstream implementation contract. Normative words apply
 to Pantry at the pinned revision, not to every historical Pantry version.

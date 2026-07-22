@@ -5,21 +5,21 @@ description: Source-pinned package resolution, lockfile, integrity, lifecycle, w
 
 # Pantry package manager
 
-This reference is reproduced from Pantry [`v0.10.43`](https://github.com/pantry-pm/pantry/tree/v0.10.43)
-at immutable commit [`c5e15260ccde34206082756a14d03e30cf1d7d5e`](https://github.com/pantry-pm/pantry/tree/c5e15260ccde34206082756a14d03e30cf1d7d5e).
+This reference is reproduced from Pantry [`v0.10.47`](https://github.com/pantry-pm/pantry/tree/v0.10.47)
+at immutable commit [`d738d5fd2e543e3b8380e5fbd5d01ba8936c1790`](https://github.com/pantry-pm/pantry/tree/d738d5fd2e543e3b8380e5fbd5d01ba8936c1790).
 The copied contract and its executable evidence are checksummed in
 [`evidence/pantry/evidence.lock.json`](https://github.com/stacksjs/white-paper/blob/main/evidence/pantry/evidence.lock.json).
 Stacks relies on this boundary; it does not redefine Pantry behavior.
 
 | Provenance | Value |
 | --- | --- |
-| Pantry release | `0.10.43` / `v0.10.43` |
-| Pantry commit | [`c5e15260ccde34206082756a14d03e30cf1d7d5e`](https://github.com/pantry-pm/pantry/tree/c5e15260ccde34206082756a14d03e30cf1d7d5e) |
-| Upstream contract | [`docs/package-manager.md`](https://github.com/pantry-pm/pantry/blob/c5e15260ccde34206082756a14d03e30cf1d7d5e/docs/package-manager.md) |
-| Contract digest | `sha256:97adc7fd1a8dddf56433ed2ce37f4d03ea697e6ecdb0aed8d744e17fb5987356` |
+| Pantry release | `0.10.47` / `v0.10.47` |
+| Pantry commit | [`d738d5fd2e543e3b8380e5fbd5d01ba8936c1790`](https://github.com/pantry-pm/pantry/tree/d738d5fd2e543e3b8380e5fbd5d01ba8936c1790) |
+| Upstream contract | [`docs/package-manager.md`](https://github.com/pantry-pm/pantry/blob/d738d5fd2e543e3b8380e5fbd5d01ba8936c1790/docs/package-manager.md) |
+| Contract digest | `sha256:03bab0e0373e2405a4f0656745786702a19c3b3a0ffb9be09ca0931f85a5158e` |
 | Documentation check | `bun run docs:contracts:check (54 source-linked markers)` |
-| Targeted HTTP/contract tests | `12 passed, 0 failed` |
-| Native test graph | `zig build test` |
+| Targeted HTTP/contract tests | `16 passed, 0 failed` |
+| Native test graph | `29 semver tests passed; zig build test completed 32/32 steps` |
 
 The text below is the upstream implementation contract. Normative words apply
 to Pantry at the pinned revision, not to every historical Pantry version.
@@ -126,6 +126,24 @@ The normal project operation follows this order:
 
 Partial failures return a non-zero command result. Quiet mode may remove progress
 noise but cannot convert a failure into success or hide its final reason.
+
+### Version-constraint semantics
+
+Exact versions remain exact. Caret ranges keep the first non-zero component
+stable (`^1.2.3` stays below 2.0.0, `^0.15.1` stays below 0.16.0, and
+`^0.0.3` stays on 0.0.3). Tilde ranges keep the minor component when one is
+present. `>=`, `<=`, `>`, `<`, and `=` compare the complete ordered version.
+If no available version satisfies a declared range, installation fails instead
+of substituting `latest`.
+
+Prerelease intent is explicit. A stable range does not select development
+builds. A range containing prerelease metadata, such as
+`ziglang.org: ^0.17.0-dev`, may select the newest matching development build.
+Pantry retains the complete prerelease/build identifier, consults live Pantry
+binary metadata for Zig, orders its numbered development builds numerically,
+and records the selected concrete version in `pantry.lock`. Registry-safe
+underscores and upstream `+` build separators are treated as equivalent version
+metadata for ordering, but the exact registry key is preserved for download.
 
 ## Lockfile contract
 

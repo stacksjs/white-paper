@@ -1,12 +1,12 @@
 {
   "pantryRepository": "https://github.com/pantry-pm/pantry",
-  "revision": "c5e15260ccde34206082756a14d03e30cf1d7d5e",
-  "tag": "v0.10.43",
-  "version": "0.10.43",
+  "revision": "d738d5fd2e543e3b8380e5fbd5d01ba8936c1790",
+  "tag": "v0.10.47",
+  "version": "0.10.47",
   "files": {
     "package-manager.md": {
       "source": "docs/package-manager.md",
-      "sha256": "sha256:97adc7fd1a8dddf56433ed2ce37f4d03ea697e6ecdb0aed8d744e17fb5987356"
+      "sha256": "sha256:03bab0e0373e2405a4f0656745786702a19c3b3a0ffb9be09ca0931f85a5158e"
     },
     "registry.md": {
       "source": "docs/registry.md",
@@ -28,13 +28,33 @@
       "source": "packages/registry/src/zig-routes.test.ts",
       "sha256": "sha256:039896e931b5f388ed95e71b96594c86924a88e599d44e56390fb08c182301de"
     },
+    "packages__ts-pantry__src__installer.ts.evidence": {
+      "source": "packages/ts-pantry/src/installer.ts",
+      "sha256": "sha256:0ad3aee95bf2bc3a328389da0029c343ffd1379b1ac504610b4ec7f8eb7530cb"
+    },
+    "packages__ts-pantry__test__installer-version.test.ts.evidence": {
+      "source": "packages/ts-pantry/test/installer-version.test.ts",
+      "sha256": "sha256:1d020b50569a1c402b6498c14a6d5a8fa20096203e2512cb5fbebbb1f638f995"
+    },
     "packages__zig__src__cli__commands__package.zig.evidence": {
       "source": "packages/zig/src/cli/commands/package.zig",
       "sha256": "sha256:bf0c24b85b7f2cc39ed971b3dcd1d16609ee76bd17171e0118bad4e2956191ba"
     },
+    "packages__zig__src__install__downloader.zig.evidence": {
+      "source": "packages/zig/src/install/downloader.zig",
+      "sha256": "sha256:c322ac59f2c37afafd6b5366d01e1d5461b594c3750d46be81dfb8228cf90dd3"
+    },
+    "packages__zig__src__install__installer.zig.evidence": {
+      "source": "packages/zig/src/install/installer.zig",
+      "sha256": "sha256:95958122a1ece28c2d5713546bffb18b1930ed26fd2b30e3290a7956e476ddfb"
+    },
     "packages__zig__src__install__pipeline.zig.evidence": {
       "source": "packages/zig/src/install/pipeline.zig",
       "sha256": "sha256:523e5da9ecd991d1a4a0e8276cda180cb615413a29be7a4f906658b42226a8bb"
+    },
+    "packages__zig__src__packages__semver.zig.evidence": {
+      "source": "packages/zig/src/packages/semver.zig",
+      "sha256": "sha256:39d39d5f369fe3e3ebffaf7eb827e554c936182bd9675f84b261834a37078147"
     },
     "packages__action__action.yml.evidence": {
       "source": "packages/action/action.yml",
@@ -87,10 +107,10 @@
   },
   "verification": {
     "documentationContracts": "bun run docs:contracts:check (54 source-linked markers)",
-    "targetedBunTests": "12 passed, 0 failed",
+    "targetedBunTests": "16 passed, 0 failed",
     "actionTests": "44 passed, 0 failed",
     "actionRedisService": "Pantry CI action-redis-service (Redis 8.8.0 install, health, round trip, outputs, cleanup)",
     "typecheck": "bun run typecheck",
-    "zigTests": "zig build test"
+    "zigTests": "29 semver tests passed; zig build test completed 32/32 steps"
   }
 }

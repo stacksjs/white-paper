@@ -216,7 +216,7 @@ Stacks uses Pantry to provision its declared native toolchain and run `panx`.
 Pantry is a separate project with its own versioned behavior; Stacks does not
 redefine its resolution, lockfile, integrity, lifecycle, registry, or storage
 semantics. This whitepaper pins the complete [package-manager contract](/reference/package-manager)
-and [registry contract](/reference/registry) from Pantry `v0.10.43`.
+and [registry contract](/reference/registry) from Pantry `v0.10.47`.
 
 Pantry distinguishes system/runtime packages, npm-compatible JavaScript
 packages, and workspace/local packages. Inspect the generated catalog and

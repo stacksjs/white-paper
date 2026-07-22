@@ -707,8 +707,8 @@ The former `bunx buddy new` and `bunx stacks new` examples were removed because 
 
 The Stacks toolchain recommendation is not a claim that Pantry is merely a
 bootstrap script or a synonym for npm. The paper pins Pantry
-[`v0.10.43`](https://github.com/pantry-pm/pantry/tree/v0.10.43) at commit
-[`c5e15260`](https://github.com/pantry-pm/pantry/tree/c5e15260ccde34206082756a14d03e30cf1d7d5e).
+[`v0.10.47`](https://github.com/pantry-pm/pantry/tree/v0.10.47) at commit
+[`d738d5fd`](https://github.com/pantry-pm/pantry/tree/d738d5fd2e543e3b8380e5fbd5d01ba8936c1790).
 Its [complete package-manager contract](https://whitepaper.stacksjs.com/reference/package-manager)
 is copied, checksummed, and regenerated from that immutable source.
 
@@ -816,9 +816,9 @@ Release-sensitive workflows pin both boundaries independently:
 
 ```yaml
 - name: Setup Pantry and Redis
-  uses: pantry-pm/pantry/packages/action@c5e15260ccde34206082756a14d03e30cf1d7d5e
+  uses: pantry-pm/pantry/packages/action@d738d5fd2e543e3b8380e5fbd5d01ba8936c1790
   with:
-    version: '0.10.43'
+    version: '0.10.47'
     install: 'false'
     services: redis@8.8.0
 ```
