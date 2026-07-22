@@ -42,6 +42,8 @@ const sourceFiles = [
   'packages/action/README.md',
   'packages/action/src/services.ts',
   'packages/action/src/services.test.ts',
+  'packages/action/src/release-download.ts',
+  'packages/action/src/release-download.test.ts',
   'packages/action/src/index.ts',
   'packages/action/src/install-mode.ts',
   'packages/action/src/post.ts',
@@ -129,11 +131,13 @@ not share process state or persistence policy.
 | --- | --- | --- |
 | Action interface | [\`packages/action/action.yml\`](${sourceLink('packages/action/action.yml')}) | \`${evidence('packages/action/action.yml').sha256}\` |
 | Service parsing, launch arguments, PID readiness, diagnostics | [\`packages/action/src/services.ts\`](${sourceLink('packages/action/src/services.ts')}) | \`${evidence('packages/action/src/services.ts').sha256}\` |
+| Release asset publication retries | [\`packages/action/src/release-download.ts\`](${sourceLink('packages/action/src/release-download.ts')}) | \`${evidence('packages/action/src/release-download.ts').sha256}\` |
 | Action installation and orchestration | [\`packages/action/src/index.ts\`](${sourceLink('packages/action/src/index.ts')}) | \`${evidence('packages/action/src/index.ts').sha256}\` |
 | Action cleanup | [\`packages/action/src/post.ts\`](${sourceLink('packages/action/src/post.ts')}) | \`${evidence('packages/action/src/post.ts').sha256}\` |
 | Native lifecycle | [\`packages/zig/src/cli/commands/services.zig\`](${sourceLink('packages/zig/src/cli/commands/services.zig')}) | \`${evidence('packages/zig/src/cli/commands/services.zig').sha256}\` |
 | Native Redis definition | [\`packages/zig/src/services/definitions.zig\`](${sourceLink('packages/zig/src/services/definitions.zig')}) | \`${evidence('packages/zig/src/services/definitions.zig').sha256}\` |
 | Action contract tests | [\`packages/action/src/services.test.ts\`](${sourceLink('packages/action/src/services.test.ts')}) | \`${evidence('packages/action/src/services.test.ts').sha256}\` |
+| Release download tests | [\`packages/action/src/release-download.test.ts\`](${sourceLink('packages/action/src/release-download.test.ts')}) | \`${evidence('packages/action/src/release-download.test.ts').sha256}\` |
 
 The lock, copied sources, and verification commands are retained in
 [\`evidence/pantry/evidence.lock.json\`](https://github.com/stacksjs/white-paper/blob/main/evidence/pantry/evidence.lock.json).
@@ -192,6 +196,13 @@ startup logfile, making port collisions, linkage failures, and invalid launch
 configuration visible in the Actions log. A failed setup never converts to a
 memory-backed cache or queue pass.
 
+An immutable tag can become visible before GitHub finishes publishing its release
+assets. The Action retries only publication-shaped download failures, including
+404, timeout, rate-limit, and server responses, with bounded capped backoff.
+Authorization and malformed-request failures remain immediate. Exhaustion names
+the requested release, platform, and attempt count instead of silently selecting
+another Pantry version.
+
 An exact Actions cache hit may restore Pantry artifacts, but the Action still
 validates and starts the declared service. Restore-key matches are not treated as
 exact dependency state. When \`install: 'false'\` is combined with a service,
@@ -249,7 +260,7 @@ function verifySource(repository: string): PantryEvidenceLock['verification'] {
   return {
     documentationContracts: 'bun run docs:contracts:check (54 source-linked markers)',
     targetedBunTests: '12 passed, 0 failed',
-    actionTests: '40 passed, 0 failed',
+    actionTests: '44 passed, 0 failed',
     actionRedisService: 'Pantry CI action-redis-service (Redis 8.8.0 install, health, round trip, outputs, cleanup)',
     typecheck: 'bun run typecheck',
     zigTests: 'zig build test',

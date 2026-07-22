@@ -707,8 +707,8 @@ The former `bunx buddy new` and `bunx stacks new` examples were removed because 
 
 The Stacks toolchain recommendation is not a claim that Pantry is merely a
 bootstrap script or a synonym for npm. The paper pins Pantry
-[`v0.10.42`](https://github.com/pantry-pm/pantry/tree/v0.10.42) at commit
-[`7f563c6f`](https://github.com/pantry-pm/pantry/tree/7f563c6fcb53ad73f2dadcb9e3fea0866f4cd7f3).
+[`v0.10.43`](https://github.com/pantry-pm/pantry/tree/v0.10.43) at commit
+[`c5e15260`](https://github.com/pantry-pm/pantry/tree/c5e15260ccde34206082756a14d03e30cf1d7d5e).
 Its [complete package-manager contract](https://whitepaper.stacksjs.com/reference/package-manager)
 is copied, checksummed, and regenerated from that immutable source.
 
@@ -816,9 +816,9 @@ Release-sensitive workflows pin both boundaries independently:
 
 ```yaml
 - name: Setup Pantry and Redis
-  uses: pantry-pm/pantry/packages/action@7f563c6fcb53ad73f2dadcb9e3fea0866f4cd7f3
+  uses: pantry-pm/pantry/packages/action@c5e15260ccde34206082756a14d03e30cf1d7d5e
   with:
-    version: '0.10.42'
+    version: '0.10.43'
     install: 'false'
     services: redis@8.8.0
 ```
@@ -831,6 +831,11 @@ binds only to loopback, enables protected mode, disables persistence, uses
 job-local PID/log files, waits for daemonization and health, validates the exact
 running version, exports `REDIS_URL` and `REDIS_SERVICE_VERSION`, and stops only
 the process it recorded as started.
+
+GitHub can expose a tag before the corresponding release binaries are available.
+The pinned Action handles that control-plane gap with bounded retries for 404,
+timeout, rate-limit, and server failures. It never falls back to another version,
+and permanent authorization or request errors still fail immediately.
 
 Startup failure includes the Redis logfile. A missing PID, port collision,
 linkage failure, health timeout, or version mismatch fails setup and cannot fall

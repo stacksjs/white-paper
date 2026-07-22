@@ -1,8 +1,8 @@
 {
   "pantryRepository": "https://github.com/pantry-pm/pantry",
-  "revision": "7f563c6fcb53ad73f2dadcb9e3fea0866f4cd7f3",
-  "tag": "v0.10.42",
-  "version": "0.10.42",
+  "revision": "c5e15260ccde34206082756a14d03e30cf1d7d5e",
+  "tag": "v0.10.43",
+  "version": "0.10.43",
   "files": {
     "package-manager.md": {
       "source": "docs/package-manager.md",
@@ -52,9 +52,17 @@
       "source": "packages/action/src/services.test.ts",
       "sha256": "sha256:0e1330c614259a00a2a2c5b8768cca28098aed1bbbb41fa13a2d68e756e15658"
     },
+    "packages__action__src__release-download.ts.evidence": {
+      "source": "packages/action/src/release-download.ts",
+      "sha256": "sha256:29e15752581ad960cecd5347f8bc3dadc8e8e0f7420e499e6bce9556e7c32c55"
+    },
+    "packages__action__src__release-download.test.ts.evidence": {
+      "source": "packages/action/src/release-download.test.ts",
+      "sha256": "sha256:079788f9f311c5c6635d7ff5f4ac3a7ec99e18d571403e3dc7ea3149d74b9ad8"
+    },
     "packages__action__src__index.ts.evidence": {
       "source": "packages/action/src/index.ts",
-      "sha256": "sha256:8ec03abb32f51041f13291101d0c77865fe7232b9c7a4753942b48b3b9609678"
+      "sha256": "sha256:3fd905facb4109f0a3e65d743c522eb72b934dea466531aeb24c468ab4fc76ab"
     },
     "packages__action__src__install-mode.ts.evidence": {
       "source": "packages/action/src/install-mode.ts",
@@ -80,7 +88,7 @@
   "verification": {
     "documentationContracts": "bun run docs:contracts:check (54 source-linked markers)",
     "targetedBunTests": "12 passed, 0 failed",
-    "actionTests": "40 passed, 0 failed",
+    "actionTests": "44 passed, 0 failed",
     "actionRedisService": "Pantry CI action-redis-service (Redis 8.8.0 install, health, round trip, outputs, cleanup)",
     "typecheck": "bun run typecheck",
     "zigTests": "zig build test"

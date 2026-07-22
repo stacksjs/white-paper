@@ -29,12 +29,15 @@ describe('Pantry evidence lock', () => {
       'packages/action/action.yml',
       'packages/action/src/services.ts',
       'packages/action/src/services.test.ts',
+      'packages/action/src/release-download.ts',
+      'packages/action/src/release-download.test.ts',
       'packages/action/src/index.ts',
       'packages/action/src/post.ts',
       'packages/zig/src/cli/commands/services.zig',
       'packages/zig/src/services/definitions.zig',
     ]))
     expect(lock.verification.actionTests).toMatch(/passed, 0 failed/)
+    expect(lock.verification.actionTests).toContain('44 passed')
     expect(lock.verification.actionRedisService).toContain('Redis 8.8.0')
   })
 

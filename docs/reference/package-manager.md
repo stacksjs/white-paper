@@ -5,17 +5,17 @@ description: Source-pinned package resolution, lockfile, integrity, lifecycle, w
 
 # Pantry package manager
 
-This reference is reproduced from Pantry [`v0.10.42`](https://github.com/pantry-pm/pantry/tree/v0.10.42)
-at immutable commit [`7f563c6fcb53ad73f2dadcb9e3fea0866f4cd7f3`](https://github.com/pantry-pm/pantry/tree/7f563c6fcb53ad73f2dadcb9e3fea0866f4cd7f3).
+This reference is reproduced from Pantry [`v0.10.43`](https://github.com/pantry-pm/pantry/tree/v0.10.43)
+at immutable commit [`c5e15260ccde34206082756a14d03e30cf1d7d5e`](https://github.com/pantry-pm/pantry/tree/c5e15260ccde34206082756a14d03e30cf1d7d5e).
 The copied contract and its executable evidence are checksummed in
 [`evidence/pantry/evidence.lock.json`](https://github.com/stacksjs/white-paper/blob/main/evidence/pantry/evidence.lock.json).
 Stacks relies on this boundary; it does not redefine Pantry behavior.
 
 | Provenance | Value |
 | --- | --- |
-| Pantry release | `0.10.42` / `v0.10.42` |
-| Pantry commit | [`7f563c6fcb53ad73f2dadcb9e3fea0866f4cd7f3`](https://github.com/pantry-pm/pantry/tree/7f563c6fcb53ad73f2dadcb9e3fea0866f4cd7f3) |
-| Upstream contract | [`docs/package-manager.md`](https://github.com/pantry-pm/pantry/blob/7f563c6fcb53ad73f2dadcb9e3fea0866f4cd7f3/docs/package-manager.md) |
+| Pantry release | `0.10.43` / `v0.10.43` |
+| Pantry commit | [`c5e15260ccde34206082756a14d03e30cf1d7d5e`](https://github.com/pantry-pm/pantry/tree/c5e15260ccde34206082756a14d03e30cf1d7d5e) |
+| Upstream contract | [`docs/package-manager.md`](https://github.com/pantry-pm/pantry/blob/c5e15260ccde34206082756a14d03e30cf1d7d5e/docs/package-manager.md) |
 | Contract digest | `sha256:97adc7fd1a8dddf56433ed2ce37f4d03ea697e6ecdb0aed8d744e17fb5987356` |
 | Documentation check | `bun run docs:contracts:check (54 source-linked markers)` |
 | Targeted HTTP/contract tests | `12 passed, 0 failed` |
