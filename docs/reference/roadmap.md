@@ -56,8 +56,9 @@ Stacks.js is a pre-1.0 reference implementation with **no profile claim**. The
 
 ## Reference implementation evidence still needed
 
-- Wire the remaining protocol fixtures to public Stacks APIs and publish
-  per-driver service versions/topologies in retained CI reports.
+- After ratification, freeze the implemented fixture corpus against the accepted
+  requirement catalog and update retained per-driver service versions or
+  topologies for any fixtures added during review.
 - Finish capability metadata coverage plus broader internal-link and executable
   snippet verification. OpenAPI/declaration freshness, the Buddy command
   reference, and the compact AI context path are already covered

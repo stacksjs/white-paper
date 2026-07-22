@@ -1457,7 +1457,8 @@ Implementation is tracked in [stacksjs/stacks#2060 — Protocol 1.0 ratification
 ### Protocol
 
 - Ratify the proposed requirement IDs and compatibility rules after review.
-- Complete the language-neutral driver contract kit and remaining fixtures.
+- Freeze the implemented fixture corpus and driver contract kit against the
+  accepted requirement catalog after review.
 - Resolve whether security is a profile baseline or separate certification layer.
 - Ratify extension-badge requirements independently of core profiles.
 
