@@ -23,8 +23,8 @@ describe('production push-to-deploy contract', () => {
   })
 
   it('pins the Pantry Action source and downloaded runtime independently', () => {
-    expect(workflow).toContain('uses: pantry-pm/pantry/packages/action@d738d5fd2e543e3b8380e5fbd5d01ba8936c1790')
-    expect(workflow).toContain("version: '0.10.47'")
+    expect(workflow).toContain('uses: pantry-pm/pantry/packages/action@f1cc9159b6a944d93fe401ed614cb61520ed6871')
+    expect(workflow).toContain("version: '0.10.48'")
     expect(workflow).toContain("install: 'true'")
     expect(workflow).not.toContain("install: 'false'")
     expect(workflow).not.toContain('packages/action@main')
