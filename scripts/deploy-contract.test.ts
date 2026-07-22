@@ -21,4 +21,10 @@ describe('production push-to-deploy contract', () => {
     expect(workflow).toContain('run: bun run deploy:ci')
     expect(packageJson.scripts['deploy:ci']).toBe('cloud deploy --env production --site whitepaper --skip-dns-verification --yes')
   })
+
+  it('pins the Pantry Action source and downloaded runtime independently', () => {
+    expect(workflow).toContain('uses: pantry-pm/pantry/packages/action@7f563c6fcb53ad73f2dadcb9e3fea0866f4cd7f3')
+    expect(workflow).toContain("version: '0.10.42'")
+    expect(workflow).not.toContain('packages/action@main')
+  })
 })
