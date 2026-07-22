@@ -150,6 +150,25 @@ Stacks.js uses multiple mechanisms:
 
 Generated declarations and OpenAPI output can become stale, so CI should regenerate or verify them.
 
+## Application source and AI context boundary
+
+Stacks conventions compress recurring integration into framework behavior. Models
+and Actions express application intent; generated migrations and declarations are
+reviewable artifacts; installed dependencies remain package-manager state. The
+`buddy ai:context` command projects that boundary into a deterministic prompt:
+
+```text
+application intent + conventions + representative paths
+                         |
+                         v
+              bounded AI authoring context
+
+excluded: node_modules, locks, caches, builds, env files, credentials, keys
+```
+
+This can reduce the code and prompt tokens required for AI-assisted changes, but
+it does not remove runtime dependencies or replace tests and review.
+
 ## Service packages
 
 Selected capability boundaries:

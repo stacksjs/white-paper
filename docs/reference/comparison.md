@@ -65,6 +65,12 @@ Instead of counting checkmarks, ask:
 - How are request IDs, logs, health, queues, and rollbacks verified?
 - Which state is process-local and which is shared?
 
+### AI authoring
+
+- How much app-owned glue must a coding model generate before domain behavior?
+- Can project context exclude dependency trees, secrets, caches, and build output by contract?
+- Are context-size metrics clearly separated from model-quality and performance claims?
+
 ### Maturity
 
 - Is the project pre-1.0?
@@ -85,6 +91,7 @@ Source revision [`bf1245e3`](https://github.com/stacksjs/stacks/tree/bf1245e336a
 - real-time and notification surfaces;
 - request IDs, structured logs, and health checks;
 - an extensive Buddy CLI and a wide package/test surface.
+- deterministic, budgeted `buddy ai:context` output that excludes dependency trees and sensitive paths.
 
 ## Stacks.js tradeoffs at the audited revision
 
@@ -112,6 +119,16 @@ Similarly, “no lock-in” is too broad to be useful. Evaluate lock-in by layer
 - application knowledge and conventions.
 
 Stacks’s driver and protocol ambitions can reduce some forms of coupling, but only tested alternative paths provide evidence of portability.
+
+## About AI token efficiency
+
+Stacks can reduce LLM output and context tokens by reducing app-owned boilerplate:
+Models, Actions, defaults, traits, and generators encode recurring integration so
+generated changes can focus on application intent. This is distinct from install
+size. `node_modules` and other dependencies remain package-manager state even
+when their source is excluded from the coding prompt. Compare equivalent features
+and measure the resulting application source and context, not the dependency tree
+alone.
 
 ## About performance
 

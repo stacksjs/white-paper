@@ -65,65 +65,51 @@ const analysis = await AI.complete({
 const response = await AI.using('openai').complete('...')
 ```
 
-## Buddy AI Assistant
+## AI-efficient application authoring
 
-Buddy is an AI-powered development assistant integrated into the Stacks CLI:
-
-```bash
-# Voice-activated code modifications
-buddy ai chat
-
-# Codebase exploration
-buddy ai explore "How does authentication work?"
-
-# Code generation
-buddy ai generate "Create a REST API for blog posts"
-
-# Code review
-buddy ai review app/Actions/CreateUserAction.ts
-```
-
-### Buddy Capabilities
-
-- **Natural Language Coding**: Describe changes in plain English
-- **Codebase Understanding**: AI reads and understands your project structure
-- **Intelligent Suggestions**: Context-aware recommendations
-- **Voice Input**: Speak commands instead of typing
-- **Multi-File Edits**: Coordinated changes across files
-
-## AI-Powered Development
-
-AI integration extends throughout the development workflow:
-
-### Smart Scaffolding
+Provider calls and authoring context are separate concerns. `@stacksjs/ai`
+connects a running application to configured models. `buddy ai:context` prepares
+a compact, deterministic description of a Stacks application for an external
+coding assistant and does not require an application AI key.
 
 ```bash
-buddy make:action "Create an action that processes refund requests"
-# AI generates appropriate validation, authorization, and logic
+# Human-readable, bounded context
+buddy ai:context
+
+# Machine-readable contract for an agent or editor integration
+buddy ai:context --json --output .stacks/ai-context.json
+
+# Choose an explicit prompt budget and record the target model name
+buddy ai:context --max-chars 4000 --model claude-sonnet
 ```
 
-### Documentation Generation
+The versioned output describes MVA roles, override order, application scripts,
+dependency names, capability surfaces, and representative application files.
+Its ordering is stable so the same project state produces reviewable diffs.
 
-```bash
-buddy docs:generate
-# AI reads code and generates comprehensive documentation
-```
+The scanner excludes dependency trees such as `node_modules`, lockfiles, build
+output, caches, environment files, credentials, private keys, and common secret
+files. This does not mean Stacks has no dependencies. It means installed package
+source is package-manager state, not application-owned code that an LLM should
+regenerate or ingest by default.
 
-### Test Generation
+## Why conventions save code tokens
 
-```bash
-buddy test:generate app/Actions/CreateUserAction.ts
-# AI creates relevant test cases based on action logic
-```
+An LLM working in a composition-first project may need to generate adapters,
+validation glue, schema copies, routing wrappers, test setup, and provider wiring
+before it reaches domain behavior. Stacks supplies much of that recurring shape
+through Models, Actions, traits, defaults, generators, and override conventions.
+The generated code can therefore focus on what is unique to the application.
 
-### Error Explanation
+That can reduce both output tokens and prompt tokens:
 
-When errors occur, Buddy can explain:
+- fewer app-owned files and repeated declarations need to be generated;
+- less framework glue needs to be reread during later edits;
+- compact context preserves application intent without copying dependencies;
+- conventional locations make generated changes easier for humans and tools to review.
 
-```
-Error: Cannot read property 'id' of undefined at CreatePostAction.ts:23
-
-Buddy: This error occurs because request.user is undefined.
-       The route is missing the 'auth' middleware. Add it to
-       routes/api.ts or the action's middleware property.
-```
+The command reports character counts and a documented heuristic token estimate
+for the compact representation and a broad legacy comparison. Those values are
+input-size diagnostics, not provider billing, correctness, model quality, or
+latency benchmarks. Always retain normal review, tests, type checks, and security
+controls for AI-generated changes.

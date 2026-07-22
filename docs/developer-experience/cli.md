@@ -24,11 +24,11 @@ buddy make:model     buddy deploy:prod    buddy lint:fix
 buddy make:migration buddy cloud:diff     buddy format
 buddy make:component buddy cloud:deploy   buddy typecheck
 
-AI                   Publishing           Git
---                   ----------           ---
-buddy ai:chat        buddy release        buddy commit
-buddy ai:explore     buddy publish        buddy changelog
-buddy ai:generate    buddy version        buddy release
+AI Context           Publishing           Git
+----------           ----------           ---
+buddy ai:context     buddy release        buddy commit
+                     buddy publish        buddy changelog
+                     buddy version        buddy release
 
 Utilities
 ---------
@@ -55,9 +55,32 @@ buddy make:component Button
 # Generate a full resource (model, migration, action, routes)
 buddy make:resource Article
 
-# Generate with AI assistance
-buddy make:action "Handle user subscription upgrade" --ai
 ```
+
+Generators reduce hand-written boilerplate, but generated artifacts remain
+application code and should be reviewed. For an LLM workflow, prefer asking the
+model to express domain intent inside these conventions rather than recreating
+the framework's routing, validation, persistence, and lifecycle glue.
+
+## Compact context for coding assistants
+
+`buddy ai:context` emits a deterministic, bounded summary of the application:
+
+```bash
+buddy ai:context
+buddy ai:context --max-chars 4000 --model claude-sonnet
+buddy ai:context --json --output .stacks/ai-context.json
+```
+
+The output includes MVA guidance, override precedence, scripts, dependency names,
+capability surfaces, and representative application paths. It excludes
+`node_modules`, lockfiles, caches, build output, environment files, credentials,
+and private keys. Dependency trees still exist on disk; excluding them keeps
+package-manager state out of the app-owned source and prompt budget.
+
+Character and heuristic token metrics compare the compact representation with a
+broad legacy context. They help measure prompt-size reduction but do not predict
+model quality, provider billing, latency, or correctness.
 
 ### Generated Files
 
@@ -216,7 +239,7 @@ Stacks uses Pantry to provision its declared native toolchain and run `panx`.
 Pantry is a separate project with its own versioned behavior; Stacks does not
 redefine its resolution, lockfile, integrity, lifecycle, registry, or storage
 semantics. This whitepaper pins the complete [package-manager contract](/reference/package-manager)
-and [registry contract](/reference/registry) from Pantry `v0.10.47`.
+and [registry contract](/reference/registry) from Pantry `v0.10.48`.
 
 Pantry distinguishes system/runtime packages, npm-compatible JavaScript
 packages, and workspace/local packages. Inspect the generated catalog and

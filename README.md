@@ -2,16 +2,16 @@
 
 ## A Draft Protocol and Source-Audited Reference Implementation for Full-Stack Application Development
 
-**Protocol 1.0 Draft · Reference source snapshot: 21 July 2026 · Pre-1.0**
+**Protocol 1.0 Draft · Reference source snapshot: 21 July 2026 · Revised 22 July 2026 · Pre-1.0**
 
 | Document field | Value |
 |---|---|
 | Status | Governed working draft; RFCs 0002–0005 remain proposed and not ratified |
-| Revision | 21 July 2026 |
+| Revision | 22 July 2026 |
 | Reference implementation | [Stacks.js](https://github.com/stacksjs/stacks) |
 | Audited source revision | [`bf1245e336ab14551e22cb7d88284f93e649a1a2`](https://github.com/stacksjs/stacks/tree/bf1245e336ab14551e22cb7d88284f93e649a1a2) |
-| Evidence revision | [`2a17dd38ffbe9f910273e3777079e7f1ec1623ba`](https://github.com/stacksjs/stacks/tree/2a17dd38ffbe9f910273e3777079e7f1ec1623ba) · [generated evidence](https://whitepaper.stacksjs.com/reference/source-evidence) |
-| Protocol repository | [`stacksjs/rfcs`](https://github.com/stacksjs/rfcs) at [`ea9dbe4`](https://github.com/stacksjs/rfcs/tree/ea9dbe438aca308085372e68aaa82ebe2e92b8d0) |
+| Evidence revision | [`6008859d6e3d75e115261d6b7de76826324788da`](https://github.com/stacksjs/stacks/tree/6008859d6e3d75e115261d6b7de76826324788da) · [generated evidence](https://whitepaper.stacksjs.com/reference/source-evidence) |
+| Protocol repository | [`stacksjs/rfcs`](https://github.com/stacksjs/rfcs) at [`cda56fb`](https://github.com/stacksjs/rfcs/tree/cda56fb8f967ca9f7522b119425a3f438f7f2fe9) |
 | Snapshot versions | Root manifest `0.70.52`; framework workspaces `0.70.161` |
 | Required toolchain | Bun `^1.3.0`, Git `^2.47.0`, SQLite `^3.47.2` |
 | Implementation license | [MIT](https://github.com/stacksjs/stacks/blob/bf1245e336ab14551e22cb7d88284f93e649a1a2/LICENSE.md) |
@@ -26,6 +26,8 @@
 Full-stack application development repeatedly solves the same coordination problem: route requests, validate input, execute business rules, persist data, authenticate identities, dispatch background work, render views, and operate the result. Individual frameworks solve this problem inside one language, but their conventions and contracts are rarely stated independently of their code.
 
 The **Stacks Protocol** is a draft specification for making those conventions explicit and portable. It defines a Model–View–Action architecture, application layout, request lifecycle, capability interfaces, driver boundaries, type-evidence requirements, and a testable conformance model. It deliberately separates normative behavior—what an implementation promises—from implementation choices such as language, runtime, template syntax, database library, and deployment provider.
+
+For AI-assisted development, that integration has a practical code-token consequence. A model can express application intent through Stacks Models, Actions, routes, traits, and conventions instead of repeatedly generating framework glue. The benefit is fewer application-owned tokens to generate, review, and keep in prompt context. Installed dependencies still exist; Stacks does not claim that `node_modules` disappears. Dependency trees are package-manager state and are excluded from the compact authoring context rather than copied into the application's source or an LLM prompt.
 
 **Stacks.js** is the first reference implementation. It is a TypeScript framework built for Bun; the generated snapshot inventories 90 versioned package manifests without treating package count as quality evidence. The supplied source implements substantial surfaces for routing, actions, models, model-derived migrations, validation, authentication, queues, real-time messaging, notifications, AI providers, observability, and developer tooling. It is also visibly pre-1.0: several drivers remain partial, experimental, or unsupported, external services and binaries remain prerequisites, and its current schema-valid conformance report makes no profile claim.
 
@@ -47,6 +49,7 @@ Teams often assemble those concerns from unrelated libraries. That freedom is us
 - configuration and error formats drift;
 - types are copied between layers;
 - routine capabilities require repeated glue code;
+- AI coding tools spend context and output tokens recreating that glue;
 - knowledge learned in one stack does not fully transfer to another.
 
 Opinionated frameworks reduce this burden through convention, but their conventions normally remain implicit in a particular codebase and language.
@@ -78,6 +81,13 @@ The protocol standardizes the parts that benefit from shared expectations:
 - conformance reports that identify exactly what was tested.
 
 It leaves implementation mechanism open: language, runtime, syntax, wire format, storage engine, UI renderer, and performance strategy are implementation-defined.
+
+In Stacks.js, the same conventions also form a compact authoring language for
+people and LLMs. Models declare domain intent, Actions isolate behavior, and
+framework defaults supply recurring integration. This can reduce generated
+application code and prompt size while keeping the result readable and
+overrideable. It is an authoring-efficiency claim, not proof that a model is more
+correct or that dependencies consume no disk space.
 
 ### The reference implementation
 
@@ -557,7 +567,7 @@ Extension claims MUST follow the same tested-driver and limitations rules as cor
 
 ## 6. Audit Method and Status Vocabulary
 
-This part is pinned to source commit [`bf1245e3`](https://github.com/stacksjs/stacks/tree/bf1245e336ab14551e22cb7d88284f93e649a1a2). Evidence commit [`2a17dd38`](https://github.com/stacksjs/stacks/tree/2a17dd38ffbe9f910273e3777079e7f1ec1623ba) contains the deterministic source manifest, driver registry, Craft matrix, and RFC-suite lock ingested by this paper. See the [generated evidence page](https://whitepaper.stacksjs.com/reference/source-evidence) for hashes, classified counts, and the refresh procedure.
+This part is pinned to source commit [`bf1245e3`](https://github.com/stacksjs/stacks/tree/bf1245e336ab14551e22cb7d88284f93e649a1a2). Evidence commit [`6008859d`](https://github.com/stacksjs/stacks/tree/6008859d6e3d75e115261d6b7de76826324788da) contains the deterministic source manifest, driver registry, Craft matrix, AI authoring-context contract, and RFC-suite lock ingested by this paper. See the [generated evidence page](https://whitepaper.stacksjs.com/reference/source-evidence) for hashes, classified counts, and the refresh procedure.
 
 It did not:
 
@@ -707,8 +717,8 @@ The former `bunx buddy new` and `bunx stacks new` examples were removed because 
 
 The Stacks toolchain recommendation is not a claim that Pantry is merely a
 bootstrap script or a synonym for npm. The paper pins Pantry
-[`v0.10.47`](https://github.com/pantry-pm/pantry/tree/v0.10.47) at commit
-[`d738d5fd`](https://github.com/pantry-pm/pantry/tree/d738d5fd2e543e3b8380e5fbd5d01ba8936c1790).
+[`v0.10.48`](https://github.com/pantry-pm/pantry/tree/v0.10.48) at commit
+[`f1cc9159`](https://github.com/pantry-pm/pantry/tree/f1cc9159b6a944d93fe401ed614cb61520ed6871).
 Its [complete package-manager contract](https://whitepaper.stacksjs.com/reference/package-manager)
 is copied, checksummed, and regenerated from that immutable source.
 
@@ -739,8 +749,10 @@ The install pipeline is evidence-sensitive:
 4. verify declared SHA-256/SHA-512/SHA-1 SRI or raw SHA-256 before extraction;
 5. fail closed on malformed or unsupported integrity claims;
 6. extract without permitting archive traversal outside the destination;
-7. link the dependency tree and write deterministic state only when saving is enabled;
-8. run lifecycle scripts only under the selected trust and `--ignore-scripts` policy.
+7. validate concrete catalog-declared programs as regular, non-empty executables;
+8. materialize project packages through validated `.partial` directories and repair corrupt project copies from usable global packages;
+9. link the dependency tree and write deterministic state only when saving is enabled;
+10. run lifecycle scripts only under the selected trust and `--ignore-scripts` policy.
 
 The native command contract includes install/CI, add/remove/update, inspection,
 deduplication, workspace linking, audit/search/info, core/npm/commit/binary
@@ -816,9 +828,9 @@ Release-sensitive workflows pin both boundaries independently:
 
 ```yaml
 - name: Setup Pantry and Redis
-  uses: pantry-pm/pantry/packages/action@d738d5fd2e543e3b8380e5fbd5d01ba8936c1790
+  uses: pantry-pm/pantry/packages/action@f1cc9159b6a944d93fe401ed614cb61520ed6871
   with:
-    version: '0.10.47'
+    version: '0.10.48'
     install: 'false'
     services: redis@8.8.0
 ```
@@ -861,6 +873,44 @@ buddy doctor                 # inspect common environment problems
 ```
 
 Commands can evolve in the 0.x line. `buddy list` and `buddy <command> --help` are the runtime source of truth.
+
+### 9.6 AI-efficient application authoring
+
+Stacks reduces the application code an LLM must generate by making recurring
+integration behavior conventional. A Model can drive migrations, types, API
+artifacts, factories, and related defaults; an Action can hold validation,
+authorization, hooks, and reusable transport-independent behavior. The model is
+therefore asked to express the application's difference from the framework,
+rather than restating framework glue for every resource.
+
+The native context command makes that boundary explicit:
+
+```bash
+buddy ai:context
+buddy ai:context --max-chars 4000 --model claude-sonnet
+buddy ai:context --json --output .stacks/ai-context.json
+```
+
+The generated contract is deterministic and versioned. It contains application
+intent, MVA guidance, override order, script and dependency names, capability
+surfaces, and representative application files. It excludes `node_modules`,
+lockfiles, build output, caches, environment files, credentials, and private
+keys. Package names may be useful context; dependency source trees are not
+application-owned code and should not be copied into the prompt by default.
+
+On the full Stacks repository at evidence revision `6008859d`, the default
+4,000-character context emitted 3,447 characters, approximately 985 tokens by
+the command's documented character heuristic. Its intentionally broad legacy
+comparison was 9,143 characters, approximately 2,613 heuristic tokens, for a
+reported 62.3% reduction. This measures that input representation only. It is
+not a provider tokenizer bill, model-quality score, latency benchmark, or claim
+that every application will see the same percentage.
+
+The larger benefit is structural: fewer generated files and less repeated glue
+mean fewer output tokens, a smaller review surface, and more prompt budget for
+domain rules. Teams should measure their own repositories, retain normal tests
+and review, and treat compact context as an input optimization rather than a
+correctness mechanism.
 
 ---
 
@@ -1240,7 +1290,7 @@ contains exactly one result for every catalog requirement:
     "version": "1.0-draft",
     "catalogRevision": 1,
     "suiteVersion": "1.0.0-draft.1",
-    "rfcsRevision": "ea9dbe438aca308085372e68aaa82ebe2e92b8d0"
+    "rfcsRevision": "cda56fb8f967ca9f7522b119425a3f438f7f2fe9"
   },
   "implementation": {
     "name": "Stacks",
@@ -1329,6 +1379,7 @@ Stacks.js is worth evaluating when a team:
 - can pin a 0.x source/package revision;
 - is willing to validate the exact drivers and delivery targets it selects;
 - prefers application-owned overrides to editing framework internals.
+- uses AI coding tools and wants them to generate application intent instead of repeated framework glue.
 
 ### 18.2 Use caution
 
@@ -1355,6 +1406,7 @@ Before adopting:
 - inspect logs and error pages for secret leakage;
 - load-test the application’s own workload;
 - document unsupported or experimental capabilities;
+- compare generated application code and `buddy ai:context` size against the team's current stack without adding dependency trees to the prompt;
 - define an upgrade window for 0.x breaking changes.
 
 ---

@@ -17,8 +17,8 @@ implementation code does not bypass that review window.
 Stacks.js is a pre-1.0 reference implementation with **no profile claim**. The
 [generated evidence page](/reference/source-evidence) pins source
 `bf1245e336ab14551e22cb7d88284f93e649a1a2`, evidence commit
-`2a17dd38ffbe9f910273e3777079e7f1ec1623ba`, and RFC commit
-`ea9dbe438aca308085372e68aaa82ebe2e92b8d0`.
+`6008859d6e3d75e115261d6b7de76826324788da`, and RFC commit
+`cda56fb8f967ca9f7522b119425a3f438f7f2fe9`.
 
 ## Completed foundations
 
@@ -36,6 +36,9 @@ Stacks.js is a pre-1.0 reference implementation with **no profile claim**. The
   the report, and retains JSON/Markdown artifacts. Its claim remains `null`.
 - A deterministic source manifest, runtime driver registry, and Craft support
   matrix now feed this paper through a checksummed evidence lock.
+- Deterministic, budgeted `buddy ai:context` output now excludes dependency
+  trees, locks, build state, environment files, credentials, and private keys;
+  its source contract is retained in the evidence lock.
 
 ## Governance gates
 
@@ -53,8 +56,9 @@ Stacks.js is a pre-1.0 reference implementation with **no profile claim**. The
 
 - Wire the remaining protocol fixtures to public Stacks APIs and publish
   per-driver service versions/topologies in retained CI reports.
-- Add deterministic OpenAPI, declaration, and Buddy command-reference freshness
-  checks ([#2056](https://github.com/stacksjs/stacks/issues/2056),
+- Add deterministic OpenAPI and declaration freshness checks; the Buddy command
+  reference and compact AI context path are now covered
+  ([#2056](https://github.com/stacksjs/stacks/issues/2056),
   [#2032](https://github.com/stacksjs/stacks/issues/2032)).
 - Expand provider-contract matrices without turning missing credentials into
   false passes ([#2057](https://github.com/stacksjs/stacks/issues/2057)).

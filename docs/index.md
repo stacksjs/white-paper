@@ -20,11 +20,13 @@ features:
   - title: Protocol, Clearly Bounded
     details: Part I defines portable conventions, lifecycle guarantees, capability contracts, profiles, and non-goals. Runtime and syntax remain implementation choices.
   - title: Source-Audited
-    details: Implementation statements are generated from a checksummed Stacks evidence set pinned to source bf1245e3 and RFC revision ea9dbe4.
+    details: Implementation statements are generated from a checksummed Stacks evidence set pinned to source bf1245e3, evidence revision 6008859d, and RFC revision cda56fb.
   - title: Honest Maturity
     details: Capabilities are labeled Implemented, Partial, Experimental, Planned, or Not Audited. Configured providers are not assumed to be working drivers.
   - title: Model–View–Action
     details: Models define domain data, Views project prepared data, and transport-independent Actions hold reusable application behavior.
+  - title: AI-Efficient Authoring
+    details: Stacks conventions reduce app-owned boilerplate, while buddy ai:context gives LLMs deterministic application intent without dependency trees, secrets, caches, or build output.
   - title: Testable Conformance
     details: Core, Standard, and Complete have 47 public requirement IDs, runner-neutral fixtures, a report schema, and an independent runner. Stacks currently claims no profile.
   - title: Type Evidence
@@ -63,8 +65,8 @@ The full paper turns those findings into a concrete maturity matrix and a testab
 | Field | Value |
 |---|---|
 | Source revision | [`bf1245e336ab14551e22cb7d88284f93e649a1a2`](https://github.com/stacksjs/stacks/tree/bf1245e336ab14551e22cb7d88284f93e649a1a2) |
-| Evidence | [Checksummed generated page](/reference/source-evidence) |
-| RFC suite | [`ea9dbe438aca308085372e68aaa82ebe2e92b8d0`](https://github.com/stacksjs/rfcs/tree/ea9dbe438aca308085372e68aaa82ebe2e92b8d0) |
+| Evidence | [`6008859d6e3d75e115261d6b7de76826324788da`](https://github.com/stacksjs/stacks/tree/6008859d6e3d75e115261d6b7de76826324788da) · [checksummed generated page](/reference/source-evidence) |
+| RFC suite | [`cda56fb8f967ca9f7522b119425a3f438f7f2fe9`](https://github.com/stacksjs/rfcs/tree/cda56fb8f967ca9f7522b119425a3f438f7f2fe9) |
 | Root manifest | `0.70.52` |
 | Framework workspaces | `0.70.161` |
 | Runtime | Bun `^1.3.0` |
