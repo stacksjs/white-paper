@@ -707,8 +707,8 @@ The former `bunx buddy new` and `bunx stacks new` examples were removed because 
 
 The Stacks toolchain recommendation is not a claim that Pantry is merely a
 bootstrap script or a synonym for npm. The paper pins Pantry
-[`v0.10.36`](https://github.com/pantry-pm/pantry/tree/v0.10.36) at commit
-[`a6bdc420`](https://github.com/pantry-pm/pantry/tree/a6bdc42071cc659896d1b9ff9d7ab6862c72954d).
+[`v0.10.40`](https://github.com/pantry-pm/pantry/tree/v0.10.40) at commit
+[`d8d4e2f1`](https://github.com/pantry-pm/pantry/tree/d8d4e2f15c871e9ee3c59ab10a4974c21c5fd182).
 Its [complete package-manager contract](https://whitepaper.stacksjs.com/reference/package-manager)
 is copied, checksummed, and regenerated from that immutable source.
 
@@ -792,7 +792,46 @@ workflow that gates all Bun tests and `zig build test`. Whitepaper CI hashes eve
 copied artifact and regenerates both reference pages; upstream behavior changes
 therefore require an intentional evidence refresh.
 
-### 9.4 Common loop
+### 9.4 Pantry Redis service boundary
+
+The [complete Redis lifecycle contract](https://whitepaper.stacksjs.com/reference/pantry-redis)
+pins the Action interface, native resolver, launch arguments, daemon-readiness
+logic, health checks, cleanup, native project lifecycle, tests, and CI evidence.
+It separates two modes that must not be conflated:
+
+| Mode | Scope | Persistence | Readiness | Cleanup |
+|---|---|---|---|---|
+| Native `pantry start redis` | current project | project service data | live process plus `PONG` | explicit `stop`, or failure rollback |
+| Action `services: redis@X.Y.Z` | one Actions job | disabled | exact version, live PID, then `PONG` | automatic `SHUTDOWN NOSAVE` post step |
+
+Release-sensitive workflows pin both boundaries independently:
+
+```yaml
+- name: Setup Pantry and Redis
+  uses: pantry-pm/pantry/packages/action@d8d4e2f15c871e9ee3c59ab10a4974c21c5fd182
+  with:
+    version: '0.10.40'
+    install: 'false'
+    services: redis@8.8.0
+```
+
+The Action source revision does not implicitly pin the downloaded Pantry binary,
+so both values are required for reproducibility. Redis installs through Pantry's
+native resolver with `--no-save`, preserving dependency, integrity, and platform
+selection while leaving the consumer manifest unchanged. The launched service
+binds only to loopback, enables protected mode, disables persistence, uses
+job-local PID/log files, waits for daemonization and health, validates the exact
+running version, exports `REDIS_URL` and `REDIS_SERVICE_VERSION`, and stops only
+the process it recorded as started.
+
+Startup failure includes the Redis logfile. A missing PID, port collision,
+linkage failure, health timeout, or version mismatch fails setup and cannot fall
+back to an in-memory cache or queue. Consumers still need real driver round trips;
+`PONG` proves the service, not the Stacks cache or queue contract. Windows Action
+service support remains explicitly open in
+[Pantry issue 211](https://github.com/pantry-pm/pantry/issues/211).
+
+### 9.5 Common loop
 
 ```bash
 buddy dev                    # start development services

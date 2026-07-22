@@ -89,6 +89,7 @@ Use `buddy list` and `buddy <command> --help` for the installed version’s comm
 - [Get started with Stacks.js](/introduction/getting-started)
 - [Understand the protocol and framework boundary](/introduction/overview)
 - [Review the technical architecture](/architecture/)
+- [Audit Pantry package, registry, and Redis boundaries](/reference/pantry-redis)
 - [Read the full white paper](https://github.com/stacksjs/white-paper#readme)
 - [Inspect the reference source](https://github.com/stacksjs/stacks)
 
