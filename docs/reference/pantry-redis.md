@@ -5,8 +5,8 @@ description: Reproducible native and GitHub Actions Redis lifecycle contract use
 
 # Pantry Redis services
 
-Stacks consumes Redis through Pantry [`v0.10.40`](https://github.com/pantry-pm/pantry/tree/v0.10.40)
-at immutable commit [`d8d4e2f15c871e9ee3c59ab10a4974c21c5fd182`](https://github.com/pantry-pm/pantry/tree/d8d4e2f15c871e9ee3c59ab10a4974c21c5fd182).
+Stacks consumes Redis through Pantry [`v0.10.42`](https://github.com/pantry-pm/pantry/tree/v0.10.42)
+at immutable commit [`7f563c6fcb53ad73f2dadcb9e3fea0866f4cd7f3`](https://github.com/pantry-pm/pantry/tree/7f563c6fcb53ad73f2dadcb9e3fea0866f4cd7f3).
 This page distinguishes Pantry's native project service from its ephemeral GitHub
 Actions service. They share package resolution and health semantics, but they do
 not share process state or persistence policy.
@@ -15,13 +15,13 @@ not share process state or persistence policy.
 
 | Contract | Pinned source | SHA-256 |
 | --- | --- | --- |
-| Action interface | [`packages/action/action.yml`](https://github.com/pantry-pm/pantry/blob/d8d4e2f15c871e9ee3c59ab10a4974c21c5fd182/packages/action/action.yml) | `sha256:06f4ac3f3307a474e493abe56f1e8f7d99f7af8ce49cecbf3dfdd2e55333ea13` |
-| Service parsing, launch arguments, PID readiness, diagnostics | [`packages/action/src/services.ts`](https://github.com/pantry-pm/pantry/blob/d8d4e2f15c871e9ee3c59ab10a4974c21c5fd182/packages/action/src/services.ts) | `sha256:7e88c89880bf1dc42cfee44f5a741b7659b2c2a1aced7da9c23520ed28a8afe9` |
-| Action installation and orchestration | [`packages/action/src/index.ts`](https://github.com/pantry-pm/pantry/blob/d8d4e2f15c871e9ee3c59ab10a4974c21c5fd182/packages/action/src/index.ts) | `sha256:8ec03abb32f51041f13291101d0c77865fe7232b9c7a4753942b48b3b9609678` |
-| Action cleanup | [`packages/action/src/post.ts`](https://github.com/pantry-pm/pantry/blob/d8d4e2f15c871e9ee3c59ab10a4974c21c5fd182/packages/action/src/post.ts) | `sha256:9dbfa452e86a61ec75da8c461d69d10a4f493765c19523ba999ee4f916ccde54` |
-| Native lifecycle | [`packages/zig/src/cli/commands/services.zig`](https://github.com/pantry-pm/pantry/blob/d8d4e2f15c871e9ee3c59ab10a4974c21c5fd182/packages/zig/src/cli/commands/services.zig) | `sha256:7da9d6271b8dc755865db26a366202448cc408e0d2e3b0daa0a3b8cb917fd748` |
-| Native Redis definition | [`packages/zig/src/services/definitions.zig`](https://github.com/pantry-pm/pantry/blob/d8d4e2f15c871e9ee3c59ab10a4974c21c5fd182/packages/zig/src/services/definitions.zig) | `sha256:faf362b6a9f037350b6baf7204f424e78b9bfe8704dfdfcf26e1daa1b5dce678` |
-| Action contract tests | [`packages/action/src/services.test.ts`](https://github.com/pantry-pm/pantry/blob/d8d4e2f15c871e9ee3c59ab10a4974c21c5fd182/packages/action/src/services.test.ts) | `sha256:0e1330c614259a00a2a2c5b8768cca28098aed1bbbb41fa13a2d68e756e15658` |
+| Action interface | [`packages/action/action.yml`](https://github.com/pantry-pm/pantry/blob/7f563c6fcb53ad73f2dadcb9e3fea0866f4cd7f3/packages/action/action.yml) | `sha256:06f4ac3f3307a474e493abe56f1e8f7d99f7af8ce49cecbf3dfdd2e55333ea13` |
+| Service parsing, launch arguments, PID readiness, diagnostics | [`packages/action/src/services.ts`](https://github.com/pantry-pm/pantry/blob/7f563c6fcb53ad73f2dadcb9e3fea0866f4cd7f3/packages/action/src/services.ts) | `sha256:7e88c89880bf1dc42cfee44f5a741b7659b2c2a1aced7da9c23520ed28a8afe9` |
+| Action installation and orchestration | [`packages/action/src/index.ts`](https://github.com/pantry-pm/pantry/blob/7f563c6fcb53ad73f2dadcb9e3fea0866f4cd7f3/packages/action/src/index.ts) | `sha256:8ec03abb32f51041f13291101d0c77865fe7232b9c7a4753942b48b3b9609678` |
+| Action cleanup | [`packages/action/src/post.ts`](https://github.com/pantry-pm/pantry/blob/7f563c6fcb53ad73f2dadcb9e3fea0866f4cd7f3/packages/action/src/post.ts) | `sha256:9dbfa452e86a61ec75da8c461d69d10a4f493765c19523ba999ee4f916ccde54` |
+| Native lifecycle | [`packages/zig/src/cli/commands/services.zig`](https://github.com/pantry-pm/pantry/blob/7f563c6fcb53ad73f2dadcb9e3fea0866f4cd7f3/packages/zig/src/cli/commands/services.zig) | `sha256:7da9d6271b8dc755865db26a366202448cc408e0d2e3b0daa0a3b8cb917fd748` |
+| Native Redis definition | [`packages/zig/src/services/definitions.zig`](https://github.com/pantry-pm/pantry/blob/7f563c6fcb53ad73f2dadcb9e3fea0866f4cd7f3/packages/zig/src/services/definitions.zig) | `sha256:faf362b6a9f037350b6baf7204f424e78b9bfe8704dfdfcf26e1daa1b5dce678` |
+| Action contract tests | [`packages/action/src/services.test.ts`](https://github.com/pantry-pm/pantry/blob/7f563c6fcb53ad73f2dadcb9e3fea0866f4cd7f3/packages/action/src/services.test.ts) | `sha256:0e1330c614259a00a2a2c5b8768cca28098aed1bbbb41fa13a2d68e756e15658` |
 
 The lock, copied sources, and verification commands are retained in
 [`evidence/pantry/evidence.lock.json`](https://github.com/stacksjs/white-paper/blob/main/evidence/pantry/evidence.lock.json).
@@ -33,9 +33,9 @@ Use the Pantry Action when a job needs an isolated Redis process:
 ```yaml
 - name: Setup Pantry and Redis
   id: pantry
-  uses: pantry-pm/pantry/packages/action@d8d4e2f15c871e9ee3c59ab10a4974c21c5fd182
+  uses: pantry-pm/pantry/packages/action@7f563c6fcb53ad73f2dadcb9e3fea0866f4cd7f3
   with:
-    version: '0.10.40'
+    version: '0.10.42'
     install: 'false'
     services: redis@8.8.0
 ```
@@ -119,9 +119,9 @@ Service availability alone does not prove either driver contract.
 
 | Check | Result |
 | --- | --- |
-| Documentation/source contract | `bun run docs:contracts:check (48 source-linked markers)` |
-| Package and registry tests | `11 passed, 0 failed` |
-| Pantry Action tests | `38 passed, 0 failed` |
+| Documentation/source contract | `bun run docs:contracts:check (54 source-linked markers)` |
+| Package and registry tests | `12 passed, 0 failed` |
+| Pantry Action tests | `40 passed, 0 failed` |
 | Live Action Redis contract | `Pantry CI action-redis-service (Redis 8.8.0 install, health, round trip, outputs, cleanup)` |
 | TypeScript typecheck | `bun run typecheck` |
 | Native Zig graph | `zig build test` |

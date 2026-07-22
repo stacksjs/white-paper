@@ -5,20 +5,20 @@ description: Source-pinned package resolution, lockfile, integrity, lifecycle, w
 
 # Pantry package manager
 
-This reference is reproduced from Pantry [`v0.10.40`](https://github.com/pantry-pm/pantry/tree/v0.10.40)
-at immutable commit [`d8d4e2f15c871e9ee3c59ab10a4974c21c5fd182`](https://github.com/pantry-pm/pantry/tree/d8d4e2f15c871e9ee3c59ab10a4974c21c5fd182).
+This reference is reproduced from Pantry [`v0.10.42`](https://github.com/pantry-pm/pantry/tree/v0.10.42)
+at immutable commit [`7f563c6fcb53ad73f2dadcb9e3fea0866f4cd7f3`](https://github.com/pantry-pm/pantry/tree/7f563c6fcb53ad73f2dadcb9e3fea0866f4cd7f3).
 The copied contract and its executable evidence are checksummed in
 [`evidence/pantry/evidence.lock.json`](https://github.com/stacksjs/white-paper/blob/main/evidence/pantry/evidence.lock.json).
 Stacks relies on this boundary; it does not redefine Pantry behavior.
 
 | Provenance | Value |
 | --- | --- |
-| Pantry release | `0.10.40` / `v0.10.40` |
-| Pantry commit | [`d8d4e2f15c871e9ee3c59ab10a4974c21c5fd182`](https://github.com/pantry-pm/pantry/tree/d8d4e2f15c871e9ee3c59ab10a4974c21c5fd182) |
-| Upstream contract | [`docs/package-manager.md`](https://github.com/pantry-pm/pantry/blob/d8d4e2f15c871e9ee3c59ab10a4974c21c5fd182/docs/package-manager.md) |
-| Contract digest | `sha256:2a655fc1a33aef042340744c69b83afcc15446104f2a4f72ea9e208874c7301f` |
-| Documentation check | `bun run docs:contracts:check (48 source-linked markers)` |
-| Targeted HTTP/contract tests | `11 passed, 0 failed` |
+| Pantry release | `0.10.42` / `v0.10.42` |
+| Pantry commit | [`7f563c6fcb53ad73f2dadcb9e3fea0866f4cd7f3`](https://github.com/pantry-pm/pantry/tree/7f563c6fcb53ad73f2dadcb9e3fea0866f4cd7f3) |
+| Upstream contract | [`docs/package-manager.md`](https://github.com/pantry-pm/pantry/blob/7f563c6fcb53ad73f2dadcb9e3fea0866f4cd7f3/docs/package-manager.md) |
+| Contract digest | `sha256:97adc7fd1a8dddf56433ed2ce37f4d03ea697e6ecdb0aed8d744e17fb5987356` |
+| Documentation check | `bun run docs:contracts:check (54 source-linked markers)` |
+| Targeted HTTP/contract tests | `12 passed, 0 failed` |
 | Native test graph | `zig build test` |
 
 The text below is the upstream implementation contract. Normative words apply
@@ -190,6 +190,55 @@ immutable-registry guarantees.
 Pantry-registry publication and npm publication are intentionally different
 surfaces. The command and selected registry determine the protocol; Pantry does
 not transparently republish every npm dependency.
+
+## npm publication semantics
+
+`pantry npm:publish` and `pantry publish --npm` enter the same npm publication
+pipeline. The package is staged according to npm's `files` and lifecycle rules,
+workspace and catalog ranges are rewritten to registry-installable versions, and
+the tarball summary is computed before authentication. `--dry-run` stops after
+that preparation boundary: it does not request OIDC credentials, read a token,
+or upload bytes.
+
+The effective dist-tag and access level use explicit precedence:
+
+1. `--tag` and `--access` command options;
+2. `publishConfig.tag` and `publishConfig.access` in `package.json`;
+3. npm defaults: `latest` for the tag, `restricted` for scoped packages, and
+   `public` for unscoped packages.
+
+An empty tag or access other than `public` or `restricted` fails before
+authentication. Pantry serializes the resolved tag into `dist-tags` and the
+resolved access into the npm registry payload; printing those values without
+including them in the upload is not considered a successful implementation.
+
+OIDC trusted publishing is attempted first by default. On success, provenance is
+attached unless `--no-provenance` is set. `--no-oidc` skips the exchange and uses
+token authentication directly. A missing trusted-publisher relationship may
+fall back to a token, while immutable-version conflicts and registry validation
+errors fail without retrying through another identity. `--otp <code>` adds npm's
+`npm-otp` header to token publication; Pantry never writes or prints the code.
+
+Token discovery is deterministic:
+
+1. `NPM_TOKEN`, `NODE_AUTH_TOKEN`, or `BUN_AUTH_TOKEN`;
+2. project `.npmrc`;
+3. `NPM_CONFIG_USERCONFIG`, when set, otherwise `~/.npmrc`;
+4. `NPM_TOKEN` or `npm_token` in `~/.pantry/credentials`;
+5. an interactive prompt when the process is not running in CI.
+
+npmrc parsing accepts `_authToken`, registry-scoped keys such as
+`//registry.npmjs.org/:_authToken`, matching single or double quotes, and a
+whole-value `${ENV_VAR}` reference. Project configuration takes priority over
+user configuration. Missing referenced environment variables do not expose the
+placeholder or silently select a lower-precedence credential. Tokens and OTPs
+are excluded from diagnostics.
+
+Package/version conflicts remain immutable. Rate-limit and transient server
+responses may be retried with bounded exponential backoff; authentication,
+validation, and version-conflict responses are returned as failures. Lifecycle
+scripts remain subject to the explicit script policy, and publication success is
+reported only after the registry accepts the package.
 
 ## Environment and installation locations
 

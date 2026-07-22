@@ -5,20 +5,20 @@ description: Source-pinned route, authentication, integrity, storage, fallback, 
 
 # Pantry registry
 
-This reference is reproduced from Pantry [`v0.10.40`](https://github.com/pantry-pm/pantry/tree/v0.10.40)
-at immutable commit [`d8d4e2f15c871e9ee3c59ab10a4974c21c5fd182`](https://github.com/pantry-pm/pantry/tree/d8d4e2f15c871e9ee3c59ab10a4974c21c5fd182).
+This reference is reproduced from Pantry [`v0.10.42`](https://github.com/pantry-pm/pantry/tree/v0.10.42)
+at immutable commit [`7f563c6fcb53ad73f2dadcb9e3fea0866f4cd7f3`](https://github.com/pantry-pm/pantry/tree/7f563c6fcb53ad73f2dadcb9e3fea0866f4cd7f3).
 The copied contract and its executable evidence are checksummed in
 [`evidence/pantry/evidence.lock.json`](https://github.com/stacksjs/white-paper/blob/main/evidence/pantry/evidence.lock.json).
 Stacks relies on this boundary; it does not redefine Pantry behavior.
 
 | Provenance | Value |
 | --- | --- |
-| Pantry release | `0.10.40` / `v0.10.40` |
-| Pantry commit | [`d8d4e2f15c871e9ee3c59ab10a4974c21c5fd182`](https://github.com/pantry-pm/pantry/tree/d8d4e2f15c871e9ee3c59ab10a4974c21c5fd182) |
-| Upstream contract | [`docs/registry.md`](https://github.com/pantry-pm/pantry/blob/d8d4e2f15c871e9ee3c59ab10a4974c21c5fd182/docs/registry.md) |
+| Pantry release | `0.10.42` / `v0.10.42` |
+| Pantry commit | [`7f563c6fcb53ad73f2dadcb9e3fea0866f4cd7f3`](https://github.com/pantry-pm/pantry/tree/7f563c6fcb53ad73f2dadcb9e3fea0866f4cd7f3) |
+| Upstream contract | [`docs/registry.md`](https://github.com/pantry-pm/pantry/blob/7f563c6fcb53ad73f2dadcb9e3fea0866f4cd7f3/docs/registry.md) |
 | Contract digest | `sha256:c16a2ef8855d99b34398bddfd6f574e0e3001ce8a769dc6dd6792af418c4724b` |
-| Documentation check | `bun run docs:contracts:check (48 source-linked markers)` |
-| Targeted HTTP/contract tests | `11 passed, 0 failed` |
+| Documentation check | `bun run docs:contracts:check (54 source-linked markers)` |
+| Targeted HTTP/contract tests | `12 passed, 0 failed` |
 | Native test graph | `zig build test` |
 
 The text below is the upstream implementation contract. Normative words apply

@@ -38,6 +38,14 @@ describe('Pantry evidence lock', () => {
     expect(lock.verification.actionRedisService).toContain('Redis 8.8.0')
   })
 
+  it('pins npm publication implementation and source-linked contracts', () => {
+    const sources = Object.values(lock.files).map(file => file.source)
+    expect(sources).toContain('packages/zig/src/cli/commands/package.zig')
+    expect(lock.verification.documentationContracts).toContain('source-linked markers')
+    expect(lock.verification.targetedBunTests).toMatch(/passed, 0 failed/)
+    expect(read('package-manager.md').toString()).toContain('## npm publication semantics')
+  })
+
   it('renders a source-pinned Redis consumer contract', () => {
     const page = readFileSync(resolve(root, 'docs/reference/pantry-redis.md'), 'utf8')
     expect(page).toContain(`uses: pantry-pm/pantry/packages/action@${lock.revision}`)

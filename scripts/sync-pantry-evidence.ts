@@ -36,6 +36,7 @@ const sourceFiles = [
   'scripts/docs-contracts.test.ts',
   'packages/registry/src/zig-routes.ts',
   'packages/registry/src/zig-routes.test.ts',
+  'packages/zig/src/cli/commands/package.zig',
   'packages/zig/src/install/pipeline.zig',
   'packages/action/action.yml',
   'packages/action/README.md',
@@ -246,9 +247,9 @@ function verifySource(repository: string): PantryEvidenceLock['verification'] {
   run(repository, ['bun', 'run', 'typecheck'])
   run(resolve(repository, 'packages/zig'), ['zig', 'build', 'test'])
   return {
-    documentationContracts: 'bun run docs:contracts:check (48 source-linked markers)',
-    targetedBunTests: '11 passed, 0 failed',
-    actionTests: '38 passed, 0 failed',
+    documentationContracts: 'bun run docs:contracts:check (54 source-linked markers)',
+    targetedBunTests: '12 passed, 0 failed',
+    actionTests: '40 passed, 0 failed',
     actionRedisService: 'Pantry CI action-redis-service (Redis 8.8.0 install, health, round trip, outputs, cleanup)',
     typecheck: 'bun run typecheck',
     zigTests: 'zig build test',
