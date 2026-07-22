@@ -707,8 +707,8 @@ The former `bunx buddy new` and `bunx stacks new` examples were removed because 
 
 The Stacks toolchain recommendation is not a claim that Pantry is merely a
 bootstrap script or a synonym for npm. The paper pins Pantry
-[`v0.10.40`](https://github.com/pantry-pm/pantry/tree/v0.10.40) at commit
-[`d8d4e2f1`](https://github.com/pantry-pm/pantry/tree/d8d4e2f15c871e9ee3c59ab10a4974c21c5fd182).
+[`v0.10.42`](https://github.com/pantry-pm/pantry/tree/v0.10.42) at commit
+[`7f563c6f`](https://github.com/pantry-pm/pantry/tree/7f563c6fcb53ad73f2dadcb9e3fea0866f4cd7f3).
 Its [complete package-manager contract](https://whitepaper.stacksjs.com/reference/package-manager)
 is copied, checksummed, and regenerated from that immutable source.
 
@@ -748,6 +748,14 @@ publication, and signing/verification paths. The generated reference records
 every option, lockfile field, lifecycle boundary, publication channel, failure
 mode, and corresponding test file; the runtime `pantry <command> --help` remains
 authoritative for the installed build.
+
+npm publication is a separate, executable contract. `pantry npm:publish` and
+`pantry publish --npm` share the same staging and upload pipeline. Access and
+dist-tag resolve in CLI, `publishConfig`, then npm-default order and are included
+in the registry payload. Dry runs stop before authentication. GitHub Actions may
+use OIDC trusted publishing and provenance; token publishing supports npm OTPs
+and deterministic environment, project npmrc, user npmrc, Pantry credential, and
+interactive-prompt precedence without logging either secret.
 
 ### 9.3 Pantry registry boundary
 
@@ -808,9 +816,9 @@ Release-sensitive workflows pin both boundaries independently:
 
 ```yaml
 - name: Setup Pantry and Redis
-  uses: pantry-pm/pantry/packages/action@d8d4e2f15c871e9ee3c59ab10a4974c21c5fd182
+  uses: pantry-pm/pantry/packages/action@7f563c6fcb53ad73f2dadcb9e3fea0866f4cd7f3
   with:
-    version: '0.10.40'
+    version: '0.10.42'
     install: 'false'
     services: redis@8.8.0
 ```
