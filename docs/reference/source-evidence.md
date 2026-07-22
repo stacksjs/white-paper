@@ -11,9 +11,9 @@ conformance.
 
 | Evidence | Immutable revision |
 | --- | --- |
-| Evidence-producing Stacks commit | [`2a17dd38ffbe9f910273e3777079e7f1ec1623ba`](https://github.com/stacksjs/stacks/tree/2a17dd38ffbe9f910273e3777079e7f1ec1623ba) |
+| Evidence-producing Stacks commit | [`b01f111a0b6ab3b9ec68d18037b5244254f7cdcc`](https://github.com/stacksjs/stacks/tree/b01f111a0b6ab3b9ec68d18037b5244254f7cdcc) |
 | Audited Stacks source tree | [`bf1245e336ab14551e22cb7d88284f93e649a1a2`](https://github.com/stacksjs/stacks/tree/bf1245e336ab14551e22cb7d88284f93e649a1a2) |
-| RFC repository | [`ea9dbe438aca308085372e68aaa82ebe2e92b8d0`](https://github.com/stacksjs/rfcs/tree/ea9dbe438aca308085372e68aaa82ebe2e92b8d0) |
+| RFC repository | [`cda56fb8f967ca9f7522b119425a3f438f7f2fe9`](https://github.com/stacksjs/rfcs/tree/cda56fb8f967ca9f7522b119425a3f438f7f2fe9) |
 | Source digest | `sha256:2d2f35689576a8d546acd5f13c69029aeb6609bca7506b953271d8f03c82ee8e` |
 
 The source manifest classifies Stacks as a **reference implementation** with an
@@ -70,7 +70,7 @@ in per-run conformance reports rather than this static inventory.
 ## Environment encryption
 
 The pinned source writes the experimental `encrypted:v2` envelope proposed in
-[RFC 0005](https://github.com/stacksjs/rfcs/blob/ea9dbe438aca308085372e68aaa82ebe2e92b8d0/rfcs/0005-versioned-environment-encryption.md):
+[RFC 0005](https://github.com/stacksjs/rfcs/blob/cda56fb8f967ca9f7522b119425a3f438f7f2fe9/rfcs/0005-versioned-environment-encryption.md):
 ephemeral-static X25519, HKDF-SHA-256, and AES-256-GCM with authenticated
 metadata. The legacy format is read only for migration. Broad production
 recommendation remains blocked on
