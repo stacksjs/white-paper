@@ -1456,23 +1456,28 @@ Implementation is tracked in [stacksjs/stacks#2060 — Protocol 1.0 ratification
 
 ### Protocol
 
-- Assign requirement IDs to the normative text.
-- Publish language-neutral fixtures and a report JSON Schema.
+- Ratify the proposed requirement IDs and compatibility rules after review.
+- Complete the language-neutral driver contract kit and remaining fixtures.
 - Resolve whether security is a profile baseline or separate certification layer.
-- Define compatibility rules for directory and error-envelope changes.
-- Add a driver contract test kit.
 - Ratify extension-badge requirements independently of core profiles.
+
+The language-neutral fixture suite, conformance-report JSON Schema, independent
+runner, and generated Stacks.js report are complete foundations. They remain
+non-ratified inputs until their RFC review and vote records are complete.
 
 ### Reference implementation
 
-- Generate a conformance report in CI.
 - Align root and workspace version provenance.
-- Remove configured-but-unimplemented drivers or mark them at type/config level.
-- Make OpenAPI freshness checkable in CI.
-- Publish tested database/provider matrices.
 - Complete or narrow environment-encryption claims after cryptographic review.
-- Publish desktop release/platform evidence before calling the target stable.
-- Keep the white paper’s source snapshot automated and reproducible.
+- Provision desktop signing/notarization and publish signed release evidence
+  before calling a target stable.
+- Finish capability metadata plus broader internal-link and executable-snippet
+  checks.
+
+Generated conformance reports, configured-driver validation, provider matrices,
+OpenAPI/declaration freshness, native packaging/install/rollback CI, Buddy
+command references, and reproducible white-paper evidence ingestion are covered
+by the current evidence line.
 
 ### Documentation
 

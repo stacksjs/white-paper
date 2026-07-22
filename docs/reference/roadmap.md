@@ -42,10 +42,12 @@ Stacks.js is a pre-1.0 reference implementation with **no profile claim**. The
 
 ## Governance gates
 
-- [#2050](https://github.com/stacksjs/stacks/issues/2050),
-  [#2051](https://github.com/stacksjs/stacks/issues/2051), and
-  [#2052](https://github.com/stacksjs/stacks/issues/2052) stay open until their
-  RFC review/vote records are complete.
+- [#2050](https://github.com/stacksjs/stacks/issues/2050) and
+  [#2051](https://github.com/stacksjs/stacks/issues/2051) stay open until their
+  RFC review/vote records are complete. The report schema and generated
+  Stacks.js report tracked by
+  [#2052](https://github.com/stacksjs/stacks/issues/2052) are complete, but do
+  not constitute ratification or a profile claim.
 - [RFC 0005](https://github.com/stacksjs/rfcs/issues/6) and
   [#2061](https://github.com/stacksjs/stacks/issues/2061) block broad production
   claims for environment encryption.
@@ -56,17 +58,17 @@ Stacks.js is a pre-1.0 reference implementation with **no profile claim**. The
 
 - Wire the remaining protocol fixtures to public Stacks APIs and publish
   per-driver service versions/topologies in retained CI reports.
-- Add deterministic OpenAPI and declaration freshness checks; the Buddy command
-  reference and compact AI context path are now covered
+- Finish capability metadata coverage plus broader internal-link and executable
+  snippet verification. OpenAPI/declaration freshness, the Buddy command
+  reference, and the compact AI context path are already covered
   ([#2056](https://github.com/stacksjs/stacks/issues/2056),
   [#2032](https://github.com/stacksjs/stacks/issues/2032)).
-- Expand provider-contract matrices without turning missing credentials into
-  false passes ([#2057](https://github.com/stacksjs/stacks/issues/2057)).
 - Complete independent review and disposition for environment envelope v2
   ([#2058](https://github.com/stacksjs/stacks/issues/2058),
   [#2061](https://github.com/stacksjs/stacks/issues/2061)).
-- Provision platform signing/notarization and retain native install, launch,
-  update, rollback, and uninstall evidence before any Craft row becomes stable
+- Provision platform signing/notarization and retain signed launch, update, and
+  uninstall evidence before any Craft row becomes stable. Native packaging,
+  install, and rollback CI tracked by #2063 is complete
   ([#2059](https://github.com/stacksjs/stacks/issues/2059),
   [#2062](https://github.com/stacksjs/stacks/issues/2062),
   [#2063](https://github.com/stacksjs/stacks/issues/2063)).
