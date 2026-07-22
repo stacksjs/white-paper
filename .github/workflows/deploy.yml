@@ -26,7 +26,7 @@ jobs:
         uses: pantry-pm/pantry/packages/action@c5e15260ccde34206082756a14d03e30cf1d7d5e # v0.10.43
         with:
           version: '0.10.43'
-          install: 'false'
+          install: 'true'
 
       - name: Configure deployment SSH key
         env:
