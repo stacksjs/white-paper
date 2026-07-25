@@ -1596,7 +1596,7 @@ buddy dev
 - Documentation: [stacksjs.org](https://stacksjs.org)
 - Source: [github.com/stacksjs/stacks](https://github.com/stacksjs/stacks)
 - Discussions: [github.com/stacksjs/stacks/discussions](https://github.com/stacksjs/stacks/discussions)
-- Community: [discord.gg/stacksjs](https://discord.gg/stacksjs)
+- Community: [stacksjs.com/discord](https://stacksjs.com/discord)
 - Sponsors: [JetBrains](https://www.jetbrains.com/) and [Solana Foundation](https://solana.com/)
 
 ---

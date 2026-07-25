@@ -473,7 +473,7 @@ We follow the [Contributor Covenant](https://www.contributor-covenant.org/). Be 
 
 ### Getting Help
 
-- **Discord**: [Join our Discord](https://discord.gg/stacksjs)
+- **Discord**: [Join our Discord](https://stacksjs.com/discord)
 - **GitHub Discussions**: For questions and ideas
 - **Stack Overflow**: Tag with `stacksjs`
 
@@ -535,7 +535,7 @@ bun run docs:build
 
 - [GitHub Repository](https://github.com/stacksjs/stacks)
 - [Documentation](https://stacksjs.org)
-- [Discord Community](https://discord.gg/stacksjs)
+- [Discord Community](https://stacksjs.com/discord)
 - [NPM Packages](https://www.npmjs.com/org/stacksjs)
 
 ## Thank You!
