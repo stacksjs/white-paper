@@ -22,7 +22,7 @@
   },
   "devDependencies": {
     "@stacksjs/bunpress": "^0.1.20",
-    "@stacksjs/ts-cloud": "^0.7.67"
+    "@stacksjs/ts-cloud": "^0.7.70"
   },
   "keywords": [
     "stacks",
