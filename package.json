@@ -14,6 +14,8 @@
     "clean": "bunpress clean",
     "evidence:sync": "bun scripts/sync-stacks-evidence.ts --write && bun scripts/sync-pantry-evidence.ts --write",
     "evidence:check": "bun scripts/sync-stacks-evidence.ts --check && bun scripts/sync-pantry-evidence.ts --check",
+    "normative": "bun scripts/normative-inventory.ts",
+    "normative:check": "bun scripts/normative-inventory.ts --check",
     "evidence:sync:pantry": "bun scripts/sync-pantry-evidence.ts --write",
     "evidence:check:pantry": "bun scripts/sync-pantry-evidence.ts --check",
     "deploy:workflow": "cloud quick-deploy --env production --site whitepaper --skip-dns-verification --force",
