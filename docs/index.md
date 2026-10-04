@@ -27,6 +27,8 @@ features:
     details: Models define domain data, Views project prepared data, and transport-independent Actions hold reusable application behavior.
   - title: AI-Efficient Authoring
     details: Stacks conventions reduce app-owned boilerplate, while buddy ai:context gives LLMs deterministic application intent without dependency trees, secrets, caches, or build output.
+  - title: Efficient Abstractions
+    details: The design goal is abstractions that cost as little as possible for human authors, AI models, and machines alike—attention, tokens, latency, memory, and energy—proven by published measurements, not adjectives.
   - title: Testable Conformance
     details: Core, Standard, and Complete have 47 public requirement IDs, runner-neutral fixtures, a report schema, and an independent runner. Stacks currently claims no profile.
   - title: Type Evidence

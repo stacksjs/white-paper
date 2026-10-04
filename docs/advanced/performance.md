@@ -35,6 +35,7 @@ Measure:
 - latency percentiles and throughput;
 - non-2xx responses and timeouts;
 - CPU, memory, and event-loop delay;
+- energy per request at the stated load, plus idle power;
 - database query count and time;
 - cache hit rate;
 - remote-call time;
@@ -139,7 +140,7 @@ For each change:
 1. state the hypothesis;
 2. change one material variable;
 3. rerun the same workload;
-4. compare latency, throughput, errors, CPU, memory, and cost;
+4. compare latency, throughput, errors, CPU, memory, energy, and cost;
 5. keep the change only if the improvement is meaningful and correctness is unchanged.
 
 Performance regressions should become automated tests or benchmark thresholds where stable enough.
@@ -162,6 +163,9 @@ p50 / p95 / p99:
 Throughput:
 Error rate:
 CPU / RSS:
+Cold start:
+Bytes transferred per request:
+Energy per request / idle power (and source):
 Notes and raw-results link:
 ```
 

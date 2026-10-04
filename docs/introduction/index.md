@@ -33,7 +33,7 @@ The protocol leaves language, runtime, template syntax, database engine, cloud p
 
 [Stacks.js](https://github.com/stacksjs/stacks) is the TypeScript/Bun reference implementation. At the white paper’s audited source revision, it contains 77 `@stacksjs/*` workspace package manifests and concrete surfaces for routing, Actions, Models, migrations, validation, auth, queues, real-time messaging, notifications, AI, logging, health, UI, and developer tooling.
 
-It is also pre-1.0. Some configuration types include drivers that are not implemented; generated artifacts can become stale; selected provider and desktop paths require external infrastructure; and a formal protocol conformance suite has not yet been published.
+It is also pre-1.0. Some configuration types include drivers that are not implemented; generated artifacts can become stale; selected provider and desktop paths require external infrastructure; and its public conformance report makes no profile claim.
 
 ## Design principles
 
@@ -52,6 +52,10 @@ Models, Actions, Views, drivers, and adapters should have clear responsibilities
 ### Evidence over adjectives
 
 Package count, feature breadth, and test-file count describe scope. They do not prove production fitness, security, or performance. Conformance claims should link to fixtures, environments, and results.
+
+### Efficient abstractions for people, models, and machines
+
+An abstraction is paid for by the developer who learns and reviews it, by the AI model that reads and generates code around it, and by the machine that runs it. Stacks aims for abstractions that are as close to ideal as possible for all three: few concepts, few tokens, and little latency, memory, compute, and energy. That is a design objective with explicit measurement rules, not a claim of measured superiority; see [Runtime & Performance](/architecture/performance).
 
 ### Batteries included, maturity disclosed
 

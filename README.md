@@ -2,12 +2,12 @@
 
 ## A Draft Protocol and Source-Audited Reference Implementation for Full-Stack Application Development
 
-**Protocol 1.0 Draft · Reference source snapshot: 21 July 2026 · Revised 22 July 2026 · Pre-1.0**
+**Protocol 1.0 Draft · Reference source snapshot: 21 July 2026 · Revised 4 October 2026 · Pre-1.0**
 
 | Document field | Value |
 |---|---|
 | Status | Governed working draft; RFCs 0002–0005 remain proposed and not ratified |
-| Revision | 22 July 2026 |
+| Revision | 4 October 2026 |
 | Reference implementation | [Stacks.js](https://github.com/stacksjs/stacks) |
 | Audited source revision | [`bf1245e336ab14551e22cb7d88284f93e649a1a2`](https://github.com/stacksjs/stacks/tree/bf1245e336ab14551e22cb7d88284f93e649a1a2) |
 | Evidence revision | [`6008859d6e3d75e115261d6b7de76826324788da`](https://github.com/stacksjs/stacks/tree/6008859d6e3d75e115261d6b7de76826324788da) · [generated evidence](https://whitepaper.stacksjs.com/reference/source-evidence) |
@@ -29,11 +29,13 @@ The **Stacks Protocol** is a draft specification for making those conventions ex
 
 For AI-assisted development, that integration has a practical code-token consequence. A model can express application intent through Stacks Models, Actions, routes, traits, and conventions instead of repeatedly generating framework glue. The benefit is fewer application-owned tokens to generate, review, and keep in prompt context. Installed dependencies still exist; Stacks does not claim that `node_modules` disappears. Dependency trees are package-manager state and are excluded from the compact authoring context rather than copied into the application's source or an LLM prompt.
 
+The overarching design objective is to make Stacks abstractions as close to ideal as possible for **both human and AI authors**, and for the machines that run the result. An ideal abstraction is cheap at every point it is paid for: little to learn and review for a person, few tokens to generate and read for a model, and little latency, memory, compute, data transfer, and energy at build and run time. The paper treats that objective as a measurable engineering target rather than an adjective: efficiency claims require published, reproducible measurements, and they never override behavioral conformance.
+
 **Stacks.js** is the first reference implementation. It is a TypeScript framework built for Bun; the generated snapshot inventories 90 versioned package manifests without treating package count as quality evidence. The supplied source implements substantial surfaces for routing, actions, models, model-derived migrations, validation, authentication, queues, real-time messaging, notifications, AI providers, observability, and developer tooling. It is also visibly pre-1.0: several drivers remain partial, experimental, or unsupported, external services and binaries remain prerequisites, and its current schema-valid conformance report makes no profile claim.
 
 This paper therefore does two jobs. Part I defines the proposed protocol. Part II records what the reference source actually contains at a pinned revision, including limitations. Part III defines how conformance should become measurable. Part IV gives adoption and implementation guidance.
 
-**Keywords:** full-stack framework, application protocol, convention over configuration, Model–View–Action, interface contract, type safety, Bun, TypeScript, conformance
+**Keywords:** full-stack framework, application protocol, convention over configuration, Model–View–Action, interface contract, type safety, AI-assisted development, energy efficiency, Bun, TypeScript, conformance
 
 ---
 
@@ -50,6 +52,7 @@ Teams often assemble those concerns from unrelated libraries. That freedom is us
 - types are copied between layers;
 - routine capabilities require repeated glue code;
 - AI coding tools spend context and output tokens recreating that glue;
+- every redundant layer, copy, and round trip is paid again in latency, memory, compute, and energy for the lifetime of the application;
 - knowledge learned in one stack does not fully transfer to another.
 
 Opinionated frameworks reduce this burden through convention, but their conventions normally remain implicit in a particular codebase and language.
@@ -89,6 +92,34 @@ application code and prompt size while keeping the result readable and
 overrideable. It is an authoring-efficiency claim, not proof that a model is more
 correct or that dependencies consume no disk space.
 
+### The design objective: efficient abstractions for people, models, and machines
+
+Stacks aims for abstractions that are as close to ideal as possible for every
+party that pays for them. One abstraction is paid for in three currencies:
+
+| Who pays | Currency | What “ideal” means |
+|---|---|---|
+| Human developers and reviewers | attention, learning time, review effort | one obvious place for each concern; names and layout that transfer between projects; failures that explain themselves |
+| AI models and coding agents | input and output tokens, context window, inference compute | intent expressed once; no regenerated glue; deterministic, bounded context; conventions a model can predict instead of rediscover |
+| Machines and operators | latency, memory, CPU, I/O, network transfer, energy, cost | no work the application did not ask for; no avoidable copies, serializations, or round trips; resources released when idle |
+
+These costs compound. Glue that a model generates must be read by a reviewer,
+re-read by the next prompt, shipped in a bundle, loaded at start-up, and executed
+on every request. Removing it once removes it at every stage. Conversely, an
+abstraction that saves keystrokes but adds hidden runtime work merely moves the
+cost from authoring to operation, where it is paid on every request and every
+deployed instance.
+
+Energy is named explicitly because it is the common denominator of the other
+machine costs and of AI-assisted development itself: generated tokens, CI
+minutes, build output, idle processes, and request handling all consume
+electricity. Lower energy use is pursued as a consequence of doing less
+unnecessary work, never by weakening validation, security, durability, or
+observability guarantees.
+
+This is a design objective, not a demonstrated result. Section 9.7 defines how
+efficiency evidence must be measured and reported before any such claim is made.
+
 ### The reference implementation
 
 At the audited revision, Stacks.js contains:
@@ -123,7 +154,8 @@ This draft does not claim that:
 - Stacks.js is generally “production-ready” for every workload;
 - privacy features automatically satisfy law in every jurisdiction;
 - security controls remove the need for threat modeling, review, and testing;
-- performance is superior without a published, reproducible benchmark.
+- performance is superior without a published, reproducible benchmark;
+- the efficient-abstraction objective has been achieved, or that Stacks.js uses less energy, memory, or inference compute than another stack, without published, reproducible measurements.
 
 Those are evidence questions. The conformance process in Part III is designed to answer them.
 
@@ -158,18 +190,25 @@ The protocol does not specify:
 - a universal template syntax;
 - one database, queue, cache, or cloud provider;
 - one wire protocol for internal drivers;
-- implementation performance;
+- implementation performance or energy budgets;
 - commercial packaging or hosting.
+
+Efficiency is a design goal of the protocol (Section 1.3), but it is not a
+conformance gate. Implementations publish efficiency evidence separately, using
+the measurement rules in Section 9.7, so that a faster implementation can never
+be called conformant merely because it is faster, and a correct implementation is
+never declared non-conformant because it runs on slower hardware.
 
 ### 1.3 Goals
 
-The protocol has five goals:
+The protocol has six goals:
 
 1. **Portable understanding.** A developer should recognize the structure and lifecycle of any conformant application.
 2. **Replaceable mechanisms.** Application code should target capability contracts rather than provider-specific clients where a driver boundary is promised.
 3. **Traceable data shapes.** Implementations should make shape changes visible across persistence, validation, requests, responses, and views.
 4. **Progressive disclosure.** A minimal application should run with defaults while advanced behavior remains configurable.
 5. **Testable claims.** “Conformant” should refer to a versioned test report, not a marketing adjective.
+6. **Efficient abstractions.** Each abstraction should minimize the total cost it imposes on human authors, AI models, and the machines that run the result: the concepts a person must learn and review, the tokens a model must read and generate, and the latency, memory, compute, transfer, and energy spent at build and run time. An abstraction that hides work should make that work inspectable and measurable rather than free-looking.
 
 ### 1.4 Non-goals
 
@@ -912,6 +951,57 @@ domain rules. Teams should measure their own repositories, retain normal tests
 and review, and treat compact context as an input optimization rather than a
 correctness mechanism.
 
+This section covers the authoring half of the efficient-abstraction objective.
+Section 9.7 covers the operational half and the evidence both halves require.
+
+### 9.7 Efficiency evidence: performance and energy
+
+The efficient-abstraction objective applies to people, models, and machines at
+once, so it cannot be judged from one number. A change that shortens prompts but
+adds a database round trip per request, or that speeds a benchmark by skipping
+validation, is not an improvement under this objective.
+
+The reference implementation contains several structural choices aimed at the
+objective. They are design inputs, not measured results:
+
+- **One declaration, several artifacts.** A Model drives queries, validation,
+  migrations, declarations, and optional routes, so the shape is written, reviewed,
+  and loaded once instead of being copied across layers.
+- **Reusable Actions.** The same Action serves HTTP, CLI, jobs, and events, so
+  behavior is not duplicated per transport.
+- **One primary toolchain.** Bun serves as runtime, package manager, bundler, and
+  test runner, which reduces the number of separate tools that must be installed,
+  started, and kept in agreement.
+- **Bounded AI context.** `buddy ai:context` emits a deterministic, size-limited
+  description and excludes dependency trees, caches, and build output.
+- **Instrumentation surfaces.** Request IDs, `Server-Timing` handling, structured
+  logs, query tracking, and queue metrics provide inputs for measurement.
+
+At the audited revision, no reproducible performance or energy report is part of
+the evidence set, so this paper makes no comparative efficiency claim. An
+efficiency report intended to support such a claim should record:
+
+| Dimension | Minimum signals |
+|---|---|
+| Human authoring | application-owned files and lines for a fixed feature; review diff size; concepts or files touched per change |
+| AI authoring | input and output tokens counted with the provider's tokenizer; context size; generation attempts until tests pass |
+| Runtime | p50/p95/p99 latency, throughput, and error rate at stated concurrency; CPU time; resident memory; cold-start time; queries per request |
+| Delivery | client bundle size, bytes transferred per request, build and CI duration |
+| Energy | joules per request (or per 1,000 requests) at a stated load, idle power, and energy per build or test run, with the measurement source named |
+
+Energy measurements must state their source and its limits. Hardware counters
+such as RAPL (Linux), `powermetrics` (macOS), or an external power meter measure
+different boundaries; cloud carbon or energy figures derived from billing or
+instance models are estimates and must be labeled as such. Every report should
+pin runtime, framework, and dependency versions; hold application behavior,
+payloads, and security settings constant across compared systems; state hardware,
+operating system, warm-up, and load profile; and publish scripts and raw results
+alongside summaries.
+
+Efficiency evidence is reported beside conformance evidence, never inside it. A
+result that changes error, transaction, validation, or lifecycle semantics is not
+an efficiency gain; it is a different, non-conformant behavior.
+
 ---
 
 ## 10. Reference API Examples
@@ -1378,8 +1468,9 @@ Stacks.js is worth evaluating when a team:
 - benefits from integrated routing, Actions, Models, migrations, auth, and queues;
 - can pin a 0.x source/package revision;
 - is willing to validate the exact drivers and delivery targets it selects;
-- prefers application-owned overrides to editing framework internals.
-- uses AI coding tools and wants them to generate application intent instead of repeated framework glue.
+- prefers application-owned overrides to editing framework internals;
+- uses AI coding tools and wants them to generate application intent instead of repeated framework glue;
+- wants to measure, and then reduce, the total authoring, runtime, and energy cost of its application stack.
 
 ### 18.2 Use caution
 
@@ -1405,6 +1496,7 @@ Before adopting:
 - verify proxy/TLS/cookie/CSRF behavior in the real topology;
 - inspect logs and error pages for secret leakage;
 - load-test the application’s own workload;
+- record CPU time, resident memory, cold-start time, bytes transferred, and energy per request for that workload using the Section 9.7 signals;
 - document unsupported or experimental capabilities;
 - compare generated application code and `buddy ai:context` size against the team's current stack without adding dependency trees to the prompt;
 - define an upgrade window for 0.x breaking changes.
@@ -1422,6 +1514,8 @@ Stacks belongs to the **opinionated, integrated framework** family. It favors sh
 - **language-neutral specifications**, which define behavior but ship no full reference framework.
 
 Stacks attempts to combine the last two ideas: an integrated implementation plus a language-neutral protocol draft. The tradeoff is straightforward. Integration can reduce decision and glue costs, while a broad pre-1.0 surface increases the burden of stabilization, testing, and precise maturity reporting.
+
+Stacks also treats the cost of an abstraction as a first-class design input for three audiences at once: the humans who read it, the AI models that generate and consult it, and the machines that execute it. Many frameworks optimize one of these; the Stacks objective is to reduce all three together and to show the measurements when it claims to have done so.
 
 This paper does not rank named competitors or repeat unverifiable claims about paid tiers, performance, feature completeness, or lock-in. Comparative claims should be maintained as a dated, sourced research artifact rather than embedded as timeless protocol text.
 
@@ -1461,6 +1555,9 @@ Implementation is tracked in [stacksjs/stacks#2060 — Protocol 1.0 ratification
   accepted requirement catalog after review.
 - Resolve whether security is a profile baseline or separate certification layer.
 - Ratify extension-badge requirements independently of core profiles.
+- Define an optional, non-gating efficiency report that sits beside the
+  conformance report and carries the Section 9.7 authoring, runtime, delivery,
+  and energy signals with their measurement sources.
 
 The language-neutral fixture suite, conformance-report JSON Schema, independent
 runner, and generated Stacks.js report are complete foundations. They remain
@@ -1474,6 +1571,11 @@ non-ratified inputs until their RFC review and vote records are complete.
   before calling a target stable.
 - Finish capability metadata plus broader internal-link and executable-snippet
   checks.
+- Publish a reproducible efficiency harness for a fixed reference application:
+  authoring tokens and files per feature, runtime latency and resource use, and
+  energy per request, build, and test run.
+- Track efficiency regressions in CI so abstraction changes that add hidden
+  runtime or energy cost are visible before release.
 
 Generated conformance reports, configured-driver validation, provider matrices,
 OpenAPI/declaration freshness, native packaging/install/rollback CI, Buddy
@@ -1486,6 +1588,7 @@ by the current evidence line.
 - Separate protocol requirements from Stacks.js syntax.
 - Replace volatile counts with generated values or pinned snapshots.
 - Remove legal conclusions and unsupported benchmarks.
+- State efficiency results only with their harness, environment, and raw data.
 - Test every command and code sample in CI where practical.
 
 ---
@@ -1579,6 +1682,8 @@ Pinned links make the paper auditable even as `main` changes. The generated
 ## Conclusion
 
 Stacks has a compelling core idea: make the architecture and conventions of an integrated full-stack framework explicit enough to travel beyond one implementation. Stacks.js supplies unusually broad reference material for that effort—real packages, application defaults, typed configuration, model and migration tooling, Actions, routing, auth, queues, real-time messaging, AI integration, and operational helpers.
+
+Its guiding objective is equally explicit: abstractions that are as close to ideal as possible for human authors, AI models, and the machines that run the result, measured in attention, tokens, latency, resources, and energy rather than asserted.
 
 The next step is rigor, not a larger feature list. The protocol needs requirement IDs, shared fixtures, public governance, and conformance reports. The implementation needs capability matrices that distinguish concrete paths from configured aspirations, and its documentation must stay pinned to reproducible evidence.
 

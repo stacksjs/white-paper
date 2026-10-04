@@ -11,8 +11,10 @@ Program tracking: [stacksjs/stacks#2060](https://github.com/stacksjs/stacks/issu
 ## Current status
 
 The white paper is a governed **Protocol 1.0 working draft**. RFC 0001 is
-accepted; RFCs 0002–0005 are proposed with review ending 20 August 2026. Reference
-implementation code does not bypass that review window.
+accepted; RFCs 0002–0005 remain proposed. Their review window was scheduled to end
+20 August 2026, and as of 4 October 2026 the RFC repository publishes no decision
+records for them, so none is ratified. Reference implementation code does not
+bypass that review process.
 
 Stacks.js is a pre-1.0 reference implementation with **no profile claim**. The
 [generated evidence page](/reference/source-evidence) pins source
@@ -73,6 +75,10 @@ Stacks.js is a pre-1.0 reference implementation with **no profile claim**. The
   ([#2059](https://github.com/stacksjs/stacks/issues/2059),
   [#2062](https://github.com/stacksjs/stacks/issues/2062),
   [#2063](https://github.com/stacksjs/stacks/issues/2063)).
+
+- Publish a reproducible efficiency harness for a fixed reference application,
+  covering authoring tokens and files per feature, runtime latency and resource
+  use, and energy per request, build, and test run, then track regressions in CI.
 
 ## Documentation quality still needed
 

@@ -7,7 +7,7 @@ description: Securing your Stacks.js application
 
 Stacks authentication is passwordless-first (WebAuthn/passkeys with TOTP MFA) while also shipping session, JWT, and OAuth — covering the full range of authentication flows from a single contract.
 
-> **Protocol context** — This guide covers the Stacks.js implementation of the draft [Authentication and authorization contract](https://github.com/stacksjs/white-paper#46-authentication-and-authorization). Mechanisms and APIs are implementation-specific; no formal conformance report exists yet.
+> **Protocol context** — This guide covers the Stacks.js implementation of the draft [Authentication and authorization contract](https://github.com/stacksjs/white-paper#46-authentication-and-authorization). Mechanisms and APIs are implementation-specific; Stacks.js publishes a schema-valid conformance report but makes no profile claim.
 
 ## ts-auth Integration
 

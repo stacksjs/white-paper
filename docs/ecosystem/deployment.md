@@ -7,7 +7,7 @@ description: Deploying Stacks.js applications across different platforms
 
 The Stacks.js reference implementation can target the web, desktop, CLIs, libraries, and serverless from a single codebase, with infrastructure managed by ts-cloud.
 
-> **Protocol context** — This page describes Stacks.js-specific tooling related to the draft [Infrastructure and deployment contract](https://github.com/stacksjs/white-paper#55-infrastructure-and-deployment). Provider support must be verified against the installed integration; no formal conformance report exists yet.
+> **Protocol context** — This page describes Stacks.js-specific tooling related to the draft [Infrastructure and deployment contract](https://github.com/stacksjs/white-paper#55-infrastructure-and-deployment). Provider support must be verified against the installed integration; Stacks.js publishes a schema-valid conformance report but makes no profile claim.
 
 ## Web Applications
 
