@@ -26,6 +26,17 @@ describe('normative inventory', () => {
     expect(normativeStatements('Reports SHOULD NOT omit the revision.')[0]!.level).toBe('SHOULD NOT')
   })
 
+  it('counts every keyword on a line, not only the first', () => {
+    // README line 265 permits presentation logic and, in the same sentence,
+    // tells a View not to own authorization. Reading only the first keyword
+    // reported no SHOULD NOT anywhere in Part I.
+    const found = normativeStatements('A View MAY contain presentation logic, but SHOULD NOT own authorization.')
+    expect(found.map(s => s.level)).toEqual(['MAY', 'SHOULD NOT'])
+    expect(found.every(s => s.line === 1)).toBe(true)
+    expect(normativeStatements('Defaults MAY exist. If so, user code MUST win and MUST NOT be overwritten.').map(s => s.level))
+      .toEqual(['MAY', 'MUST', 'MUST NOT'])
+  })
+
   it('does not count the RFC 2119 boilerplate as a requirement', () => {
     // The one line that defines the keywords rather than using them. Counting
     // it is how an inventory starts lying about its own size.
@@ -38,14 +49,14 @@ describe('normative inventory', () => {
 
   /**
    * The catalog at revision 1 carries 47 requirements, all MUST or MUST NOT.
-   * These 15 are therefore neither catalogued nor marked informative, which is
+   * These 23 are therefore neither catalogued nor marked informative, which is
    * the gap stacksjs/stacks#2050 exists to close. The number is pinned so a new
    * one cannot arrive unnoticed.
    */
-  it('still has 15 SHOULD/MAY statements the catalog does not carry', () => {
+  it('still has 23 SHOULD/MAY statements the catalog does not carry', () => {
     const counts = countByLevel(normativeStatements(readme))
 
-    expect(counts.SHOULD + counts.MAY + counts['SHOULD NOT']).toBe(15)
+    expect(counts.SHOULD + counts.MAY + counts['SHOULD NOT']).toBe(23)
     expect(counts).toEqual(SNAPSHOT)
   })
 })

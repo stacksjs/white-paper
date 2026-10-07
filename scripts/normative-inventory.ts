@@ -36,7 +36,7 @@ export interface NormativeStatement {
  * neither is prose that happens to contain a lowercase "may".
  */
 const LEVELS: NormativeLevel[] = ['MUST NOT', 'SHOULD NOT', 'MUST', 'SHOULD', 'MAY']
-const PATTERN = new RegExp(`\\b(${LEVELS.join('|')})\\b`)
+const PATTERN = new RegExp(`\\b(${LEVELS.join('|')})\\b`, 'g')
 
 /**
  * The one line that defines the keywords rather than using them. Counting RFC
@@ -69,8 +69,10 @@ export function normativeStatements(markdown: string): NormativeStatement[] {
     if (BOILERPLATE.test(line))
       continue
 
-    const match = PATTERN.exec(line)
-    if (match)
+    // Every keyword, not the first: one sentence can permit one thing and
+    // forbid another ("MAY contain presentation logic, but SHOULD NOT own
+    // authorization"), and reading only the first hid every SHOULD NOT.
+    for (const match of line.matchAll(PATTERN))
       statements.push({ line: index + 1, level: match[1] as NormativeLevel, section, text: line.trim() })
   }
 
@@ -85,19 +87,24 @@ export function countByLevel(statements: NormativeStatement[]): Record<Normative
 }
 
 /**
- * The surface as it stood when this was written, against catalog revision 1.
+ * The surface as it stands, against catalog revision 1: every keyword use in
+ * Part I, so a line that both permits and forbids counts twice.
  *
  * The catalog carries 47 requirements, every one of them MUST or MUST NOT. So
- * the 15 SHOULD and MAY statements below are, today, neither catalogued nor
- * marked informative - which is the gap #2050 exists to close. Updating this
- * snapshot is the moment to ask which of the two a new statement is.
+ * the 23 SHOULD, SHOULD NOT and MAY uses below are, today, neither catalogued
+ * nor marked informative - which is the gap stacksjs/stacks#2050 exists to
+ * close. Updating this snapshot is the moment to ask which of the two a new
+ * statement is.
+ *
+ * This read 65 statements and no SHOULD NOT at all until the inventory
+ * counted past the first keyword on a line.
  */
 export const SNAPSHOT: Record<NormativeLevel, number> = {
-  'MUST': 45,
-  'MUST NOT': 5,
-  'SHOULD': 8,
-  'SHOULD NOT': 0,
-  'MAY': 7,
+  'MUST': 55,
+  'MUST NOT': 12,
+  'SHOULD': 10,
+  'SHOULD NOT': 1,
+  'MAY': 12,
 }
 
 if (import.meta.main) {
